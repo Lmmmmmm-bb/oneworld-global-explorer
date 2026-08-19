@@ -6,6 +6,10 @@ export {
   ELIGIBLE_CARRIER_CODES,
   OPERATING_CARRIERS,
 } from "./config"
+export {
+  getMarketingCarrierOptions,
+  getOperatingCarrierOptions,
+} from "./carriers"
 export { deriveJourney } from "./derive-journey"
 export {
   getOceanCrossing,

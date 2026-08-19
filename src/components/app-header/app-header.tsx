@@ -1,14 +1,22 @@
 import type { FC } from "react"
-import { Download, FileUp, Globe2, Plus } from "lucide-react"
+import { Download, FilePlus2, FileUp, Globe2, Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { APP_CONFIG } from "@/config"
 
 type AppHeaderProps = {
-  onAddFlight?: () => void
+  onAddFlight: () => void
+  onExport: () => void
+  onImport: () => void
+  onNew: () => void
 }
 
-export const AppHeader: FC<AppHeaderProps> = ({ onAddFlight }) => (
+export const AppHeader: FC<AppHeaderProps> = ({
+  onAddFlight,
+  onExport,
+  onImport,
+  onNew,
+}) => (
   <header className="border-b bg-background/95 backdrop-blur">
     <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
       <div className="flex min-w-0 items-center gap-3">
@@ -25,15 +33,34 @@ export const AppHeader: FC<AppHeaderProps> = ({ onAddFlight }) => (
         </div>
       </div>
       <div className="flex items-center gap-1.5">
-        <Button aria-label="Import itinerary" variant="ghost">
+        <Button
+          aria-label="Start a new itinerary"
+          className="size-10 sm:w-auto"
+          onClick={onNew}
+          variant="ghost"
+        >
+          <FilePlus2 aria-hidden="true" />
+          <span className="hidden xl:inline">New</span>
+        </Button>
+        <Button
+          aria-label="Import itinerary"
+          className="size-10 sm:w-auto"
+          onClick={onImport}
+          variant="ghost"
+        >
           <FileUp aria-hidden="true" />
-          <span className="hidden sm:inline">Import</span>
+          <span className="hidden xl:inline">Import</span>
         </Button>
-        <Button aria-label="Export itinerary" variant="ghost">
+        <Button
+          aria-label="Export itinerary"
+          className="size-10 sm:w-auto"
+          onClick={onExport}
+          variant="ghost"
+        >
           <Download aria-hidden="true" />
-          <span className="hidden sm:inline">Export</span>
+          <span className="hidden xl:inline">Export</span>
         </Button>
-        <Button onClick={onAddFlight} size="lg">
+        <Button className="hidden sm:flex" onClick={onAddFlight} size="lg">
           <Plus aria-hidden="true" />
           Add flight
         </Button>

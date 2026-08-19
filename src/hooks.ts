@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react"
 
+import { validateItinerary } from "@/features/rules"
+import { useItineraryStore } from "@/stores"
+
 export const useMediaQuery = (query: string): boolean => {
   const [matches, setMatches] = useState(false)
 
@@ -14,4 +17,9 @@ export const useMediaQuery = (query: string): boolean => {
   }, [query])
 
   return matches
+}
+
+export const useItineraryValidation = () => {
+  const itinerary = useItineraryStore((state) => state.itinerary)
+  return validateItinerary(itinerary)
 }

@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest"
 
-import type {
-  FlightSegment,
-  Itinerary,
-} from "@/features/itinerary"
+import type { FlightSegment, Itinerary } from "@/features/itinerary"
 import type { Airport } from "@/features/route-data"
 
 import { ELIGIBLE_CARRIER_CODES } from "./config"

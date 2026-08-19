@@ -9,6 +9,7 @@ import {
   type FlightSegment,
   type Itinerary,
 } from "@/features/itinerary"
+import { useMediaQuery } from "@/hooks"
 import { useItineraryStore } from "@/stores"
 
 import { FlightEditorSheet } from "../components/flight-editor-sheet"
@@ -37,6 +38,7 @@ export const PlannerPage: FC = () => {
   const [mobileTab, setMobileTab] = useState<MobileTab>("itinerary")
   const importDialogRef = useRef<ImportItineraryDialogHandle>(null)
   const lastArrival = itinerary.flights.at(-1)?.to ?? ""
+  const isDesktop = useMediaQuery("(min-width: 1024px)")
 
   const openAddFlight = () => {
     setEditingFlight(null)
@@ -85,46 +87,51 @@ export const PlannerPage: FC = () => {
 
         <SummaryStrip />
 
-        <div className="mt-5 hidden gap-5 lg:grid lg:grid-cols-[minmax(0,3fr)_minmax(340px,2fr)]">
-          <ItineraryPanel
-            onAddFlight={openAddFlight}
-            onEditFlight={openEditFlight}
-          />
-          <PlannerAside />
-        </div>
-
-        <Tabs
-          className="mt-5 lg:hidden"
-          onValueChange={(value) => value && setMobileTab(value as MobileTab)}
-          value={mobileTab}
-        >
-          <TabsList className="grid h-11 w-full grid-cols-3" variant="default">
-            <TabsTrigger value="itinerary">
-              <ListOrdered aria-hidden="true" />
-              Itinerary
-            </TabsTrigger>
-            <TabsTrigger value="map">
-              <Map aria-hidden="true" />
-              Map
-            </TabsTrigger>
-            <TabsTrigger value="validation">
-              <ShieldCheck aria-hidden="true" />
-              Validation
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent className="mt-4" value="itinerary">
+        {isDesktop ? (
+          <div className="mt-5 grid grid-cols-[minmax(0,3fr)_minmax(340px,2fr)] gap-5">
             <ItineraryPanel
               onAddFlight={openAddFlight}
               onEditFlight={openEditFlight}
             />
-          </TabsContent>
-          <TabsContent className="mt-4" value="map">
-            <RouteMap />
-          </TabsContent>
-          <TabsContent className="mt-4" value="validation">
-            <ValidationPanel />
-          </TabsContent>
-        </Tabs>
+            <PlannerAside />
+          </div>
+        ) : (
+          <Tabs
+            className="mt-5"
+            onValueChange={(value) => value && setMobileTab(value as MobileTab)}
+            value={mobileTab}
+          >
+            <TabsList
+              className="grid h-11 w-full grid-cols-3"
+              variant="default"
+            >
+              <TabsTrigger value="itinerary">
+                <ListOrdered aria-hidden="true" />
+                Itinerary
+              </TabsTrigger>
+              <TabsTrigger value="map">
+                <Map aria-hidden="true" />
+                Map
+              </TabsTrigger>
+              <TabsTrigger value="validation">
+                <ShieldCheck aria-hidden="true" />
+                Validation
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent className="mt-4" value="itinerary">
+              <ItineraryPanel
+                onAddFlight={openAddFlight}
+                onEditFlight={openEditFlight}
+              />
+            </TabsContent>
+            <TabsContent className="mt-4" value="map">
+              {mobileTab === "map" ? <RouteMap /> : null}
+            </TabsContent>
+            <TabsContent className="mt-4" value="validation">
+              <ValidationPanel />
+            </TabsContent>
+          </Tabs>
+        )}
       </main>
 
       <footer className="mx-auto max-w-[1600px] px-4 py-6 text-xs text-muted-foreground sm:px-6 lg:px-8">
@@ -132,7 +139,7 @@ export const PlannerPage: FC = () => {
         and the ticketing carrier.
       </footer>
 
-      {mobileTab === "itinerary" ? (
+      {!isDesktop && mobileTab === "itinerary" ? (
         <Button
           className="fixed right-4 bottom-4 z-40 h-12 rounded-full px-5 shadow-lg sm:hidden"
           onClick={openAddFlight}

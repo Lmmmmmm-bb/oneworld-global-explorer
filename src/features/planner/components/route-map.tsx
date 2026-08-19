@@ -71,7 +71,7 @@ export const RouteMap: FC = () => {
         mapInstance = map
         map.getCanvas().setAttribute("tabindex", "-1")
         map.getCanvas().setAttribute("aria-hidden", "true")
-        map.addControl(new maplibre.AttributionControl({ compact: true }))
+        map.addControl(new maplibre.AttributionControl({ compact: false }))
 
         map.on("load", () => {
           if (cancelled) return
@@ -173,7 +173,7 @@ export const RouteMap: FC = () => {
         <div
           aria-label="Non-interactive map of the planned flight segments"
           className="relative aspect-[16/9] min-h-64 overflow-hidden bg-muted/30"
-          role="img"
+          role="region"
         >
           <div className="absolute inset-0" ref={containerRef} />
           {status === "loading" ? (

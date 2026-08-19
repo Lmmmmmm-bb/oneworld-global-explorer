@@ -24,3 +24,10 @@ the Global Explorer carrier allowlist.
 
 The upstream repository does not currently publish a license. Confirm the
 appropriate data rights before publicly or commercially distributing a build.
+
+## Validation scope
+
+The rule engine implements itinerary-derived checks from sections 4 and 8 of
+[Global Explorer Rule 9701 (27 February 2026)](https://assets.ctfassets.net/m9ph4qvas97u/2pqmhTK95sqIsn5UP02lz/a55a65324e4eff966e9d520216b6c307/Global_Explorer_27_FEB_26.pdf).
+It deliberately does not determine pricing, inventory, booking-class
+availability, ticketing agreements, or whether a carrier will issue a ticket.

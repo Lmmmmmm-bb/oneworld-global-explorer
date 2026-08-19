@@ -1,15 +1,13 @@
 "use client"
-
+import type * as React from "react"
 import { Tabs as TabsPrimitive } from "@base-ui/react/tabs"
 import { cva, type VariantProps } from "class-variance-authority"
-
 import { cn } from "@/lib/utils"
-
-function Tabs({
+const Tabs: React.FC<TabsPrimitive.Root.Props> = ({
   className,
   orientation = "horizontal",
   ...props
-}: TabsPrimitive.Root.Props) {
+}: TabsPrimitive.Root.Props) => {
   return (
     <TabsPrimitive.Root
       data-slot="tabs"
@@ -22,7 +20,6 @@ function Tabs({
     />
   )
 }
-
 const tabsListVariants = cva(
   "group/tabs-list inline-flex w-fit items-center justify-center rounded-lg p-[3px] text-muted-foreground group-data-horizontal/tabs:h-8 group-data-vertical/tabs:h-fit group-data-vertical/tabs:flex-col data-[variant=line]:rounded-none",
   {
@@ -37,12 +34,13 @@ const tabsListVariants = cva(
     },
   }
 )
-
-function TabsList({
+const TabsList: React.FC<
+  TabsPrimitive.List.Props & VariantProps<typeof tabsListVariants>
+> = ({
   className,
   variant = "default",
   ...props
-}: TabsPrimitive.List.Props & VariantProps<typeof tabsListVariants>) {
+}: TabsPrimitive.List.Props & VariantProps<typeof tabsListVariants>) => {
   return (
     <TabsPrimitive.List
       data-slot="tabs-list"
@@ -52,8 +50,10 @@ function TabsList({
     />
   )
 }
-
-function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
+const TabsTrigger: React.FC<TabsPrimitive.Tab.Props> = ({
+  className,
+  ...props
+}: TabsPrimitive.Tab.Props) => {
   return (
     <TabsPrimitive.Tab
       data-slot="tabs-trigger"
@@ -68,8 +68,10 @@ function TabsTrigger({ className, ...props }: TabsPrimitive.Tab.Props) {
     />
   )
 }
-
-function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
+const TabsContent: React.FC<TabsPrimitive.Panel.Props> = ({
+  className,
+  ...props
+}: TabsPrimitive.Panel.Props) => {
   return (
     <TabsPrimitive.Panel
       data-slot="tabs-content"
@@ -78,5 +80,4 @@ function TabsContent({ className, ...props }: TabsPrimitive.Panel.Props) {
     />
   )
 }
-
 export { Tabs, TabsList, TabsTrigger, TabsContent, tabsListVariants }

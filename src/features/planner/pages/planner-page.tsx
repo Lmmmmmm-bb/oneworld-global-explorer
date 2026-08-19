@@ -19,7 +19,7 @@ import {
 import { ItineraryPanel } from "../components/itinerary-panel"
 import { NewItineraryDialog } from "../components/new-itinerary-dialog"
 import { PlannerAside } from "../components/planner-aside"
-import { RouteMapPlaceholder } from "../components/route-map-placeholder"
+import { RouteMap } from "../components/route-map"
 import { SummaryStrip } from "../components/summary-strip"
 import { ValidationPanel } from "../components/validation-panel"
 
@@ -119,7 +119,7 @@ export const PlannerPage: FC = () => {
             />
           </TabsContent>
           <TabsContent className="mt-4" value="map">
-            <RouteMapPlaceholder />
+            <RouteMap />
           </TabsContent>
           <TabsContent className="mt-4" value="validation">
             <ValidationPanel />

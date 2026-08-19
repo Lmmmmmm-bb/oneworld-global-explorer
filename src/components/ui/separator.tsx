@@ -1,14 +1,12 @@
 "use client"
-
+import type * as React from "react"
 import { Separator as SeparatorPrimitive } from "@base-ui/react/separator"
-
 import { cn } from "@/lib/utils"
-
-function Separator({
+const Separator: React.FC<SeparatorPrimitive.Props> = ({
   className,
   orientation = "horizontal",
   ...props
-}: SeparatorPrimitive.Props) {
+}: SeparatorPrimitive.Props) => {
   return (
     <SeparatorPrimitive
       data-slot="separator"
@@ -21,5 +19,4 @@ function Separator({
     />
   )
 }
-
 export { Separator }

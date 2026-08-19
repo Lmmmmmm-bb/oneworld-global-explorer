@@ -1,12 +1,11 @@
+import type * as React from "react"
 import { ScrollArea as ScrollAreaPrimitive } from "@base-ui/react/scroll-area"
-
 import { cn } from "@/lib/utils"
-
-function ScrollArea({
+const ScrollArea: React.FC<ScrollAreaPrimitive.Root.Props> = ({
   className,
   children,
   ...props
-}: ScrollAreaPrimitive.Root.Props) {
+}: ScrollAreaPrimitive.Root.Props) => {
   return (
     <ScrollAreaPrimitive.Root
       data-slot="scroll-area"
@@ -24,12 +23,11 @@ function ScrollArea({
     </ScrollAreaPrimitive.Root>
   )
 }
-
-function ScrollBar({
+const ScrollBar: React.FC<ScrollAreaPrimitive.Scrollbar.Props> = ({
   className,
   orientation = "vertical",
   ...props
-}: ScrollAreaPrimitive.Scrollbar.Props) {
+}: ScrollAreaPrimitive.Scrollbar.Props) => {
   return (
     <ScrollAreaPrimitive.Scrollbar
       data-slot="scroll-area-scrollbar"
@@ -48,5 +46,4 @@ function ScrollBar({
     </ScrollAreaPrimitive.Scrollbar>
   )
 }
-
 export { ScrollArea, ScrollBar }

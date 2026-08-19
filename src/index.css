@@ -2,6 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/inter";
+@import "maplibre-gl/dist/maplibre-gl.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -136,10 +137,45 @@
 }
 
 @layer utilities {
-  .page-grid {
+.page-grid {
     background-image:
       linear-gradient(to right, color-mix(in oklch, var(--border) 48%, transparent) 1px, transparent 1px),
       linear-gradient(to bottom, color-mix(in oklch, var(--border) 48%, transparent) 1px, transparent 1px);
     background-size: 28px 28px;
   }
+}
+
+.route-map-marker {
+    display: grid;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    place-items: center;
+    border: 2px solid white;
+    border-radius: 9999px;
+    background: oklch(0.508 0.118 165.612);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 24%);
+    color: white;
+    font-size: 0.625rem;
+    font-weight: 700;
+    line-height: 1;
+    padding-inline: 0.25rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+@media (pointer: coarse) {
+    [data-slot="button"],
+    [data-slot="select-trigger"],
+    [data-slot="tabs-trigger"] {
+        min-height: 2.75rem;
+    }
 }

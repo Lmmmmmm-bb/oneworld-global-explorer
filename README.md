@@ -31,3 +31,17 @@ The rule engine implements itinerary-derived checks from sections 4 and 8 of
 [Global Explorer Rule 9701 (27 February 2026)](https://assets.ctfassets.net/m9ph4qvas97u/2pqmhTK95sqIsn5UP02lz/a55a65324e4eff966e9d520216b6c307/Global_Explorer_27_FEB_26.pdf).
 It deliberately does not determine pricing, inventory, booking-class
 availability, ticketing agreements, or whether a carrier will issue a ticket.
+
+## Optional route map
+
+Copy `.env.example` to `.env.local` and set `VITE_MAPTILER_KEY` to enable the
+read-only MapLibre overview. MapTiler is the app's only runtime network
+dependency; restrict the public browser key to the domains that serve the app.
+All planner and validation features continue to work when the map is not
+configured or cannot load.
+
+## Follow-up ideas
+
+- Add full operation history with multi-step undo and redo.
+- Evaluate [cobe](https://github.com/shuding/cobe) as an optional 3D globe
+  preview without replacing the simple default map.

@@ -33,7 +33,9 @@ export const StatusPill: FC<StatusPillProps> = ({ status }) => {
 
   return (
     <Badge
+      aria-live="polite"
       className={cn("gap-1.5 rounded-full px-2.5 py-1", details.className)}
+      role="status"
       variant="outline"
     >
       <Icon aria-hidden="true" className="size-3.5" />

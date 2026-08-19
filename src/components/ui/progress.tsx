@@ -1,13 +1,12 @@
+import type * as React from "react"
 import { Progress as ProgressPrimitive } from "@base-ui/react/progress"
-
 import { cn } from "@/lib/utils"
-
-function Progress({
+const Progress: React.FC<ProgressPrimitive.Root.Props> = ({
   className,
   children,
   value,
   ...props
-}: ProgressPrimitive.Root.Props) {
+}: ProgressPrimitive.Root.Props) => {
   return (
     <ProgressPrimitive.Root
       value={value}
@@ -22,8 +21,10 @@ function Progress({
     </ProgressPrimitive.Root>
   )
 }
-
-function ProgressTrack({ className, ...props }: ProgressPrimitive.Track.Props) {
+const ProgressTrack: React.FC<ProgressPrimitive.Track.Props> = ({
+  className,
+  ...props
+}: ProgressPrimitive.Track.Props) => {
   return (
     <ProgressPrimitive.Track
       className={cn(
@@ -35,11 +36,10 @@ function ProgressTrack({ className, ...props }: ProgressPrimitive.Track.Props) {
     />
   )
 }
-
-function ProgressIndicator({
+const ProgressIndicator: React.FC<ProgressPrimitive.Indicator.Props> = ({
   className,
   ...props
-}: ProgressPrimitive.Indicator.Props) {
+}: ProgressPrimitive.Indicator.Props) => {
   return (
     <ProgressPrimitive.Indicator
       data-slot="progress-indicator"
@@ -48,8 +48,10 @@ function ProgressIndicator({
     />
   )
 }
-
-function ProgressLabel({ className, ...props }: ProgressPrimitive.Label.Props) {
+const ProgressLabel: React.FC<ProgressPrimitive.Label.Props> = ({
+  className,
+  ...props
+}: ProgressPrimitive.Label.Props) => {
   return (
     <ProgressPrimitive.Label
       className={cn("text-xs/relaxed font-medium", className)}
@@ -58,8 +60,10 @@ function ProgressLabel({ className, ...props }: ProgressPrimitive.Label.Props) {
     />
   )
 }
-
-function ProgressValue({ className, ...props }: ProgressPrimitive.Value.Props) {
+const ProgressValue: React.FC<ProgressPrimitive.Value.Props> = ({
+  className,
+  ...props
+}: ProgressPrimitive.Value.Props) => {
   return (
     <ProgressPrimitive.Value
       className={cn(
@@ -71,7 +75,6 @@ function ProgressValue({ className, ...props }: ProgressPrimitive.Value.Props) {
     />
   )
 }
-
 export {
   Progress,
   ProgressTrack,

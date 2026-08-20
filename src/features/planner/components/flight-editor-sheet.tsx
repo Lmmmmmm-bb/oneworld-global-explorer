@@ -42,6 +42,7 @@ interface FlightEditorSheetProps {
 }
 
 type FlightEditorContentProps = Omit<FlightEditorSheetProps, "open">
+type ActiveAirportPicker = "from" | "to" | null
 
 const FlightEditorContent: FC<FlightEditorContentProps> = ({
   flight,
@@ -54,6 +55,18 @@ const FlightEditorContent: FC<FlightEditorContentProps> = ({
       ? { ...flight }
       : createFlightSegment({ from: defaultOrigin, arrivalType: "stopover" })
   )
+  const [activeAirportPicker, setActiveAirportPicker] =
+    useState<ActiveAirportPicker>(null)
+
+  const handleAirportPickerOpenChange = (
+    picker: Exclude<ActiveAirportPicker, null>,
+    open: boolean
+  ) => {
+    setActiveAirportPicker((current) => {
+      if (open) return picker
+      return current === picker ? null : current
+    })
+  }
 
   const destinationAirports = useMemo(
     () => (draft.from ? getDestinationAirports(draft.from) : []),
@@ -164,11 +177,15 @@ const FlightEditorContent: FC<FlightEditorContentProps> = ({
               </div>
             ) : null}
 
-            <div className="grid items-end gap-3 sm:grid-cols-[1fr_auto_1fr]">
+            <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
               <AirportPicker
                 candidates={airports}
                 label="From"
                 onChange={(airport) => setOrigin(airport.iata)}
+                onOpenChange={(open) =>
+                  handleAirportPickerOpenChange("from", open)
+                }
+                open={activeAirportPicker === "from"}
                 value={draft.from}
               />
               <ArrowRight
@@ -181,6 +198,10 @@ const FlightEditorContent: FC<FlightEditorContentProps> = ({
                 disabled={!draft.from}
                 label="To"
                 onChange={(airport) => setDestination(airport.iata)}
+                onOpenChange={(open) =>
+                  handleAirportPickerOpenChange("to", open)
+                }
+                open={activeAirportPicker === "to"}
                 placeholder={
                   draft.from ? "Choose a direct route" : "Choose From first"
                 }

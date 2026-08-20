@@ -23,6 +23,11 @@ const CABIN_LABELS: Record<CabinClass, string> = {
   first: "First",
 }
 
+const getMileageBandLabel = (band: MileageBandPreference) =>
+  band === "auto"
+    ? "Auto · smallest compatible band"
+    : `${(band / 1_000).toFixed(0)}K miles`
+
 export const PlanSettings: FC = () => {
   const itinerary = useItineraryStore((state) => state.itinerary)
   const setCabinClass = useItineraryStore((state) => state.setCabinClass)
@@ -41,7 +46,7 @@ export const PlanSettings: FC = () => {
           value={itinerary.cabinClass}
         >
           <SelectTrigger className="h-10 w-full" id="cabin-class">
-            <SelectValue />
+            <SelectValue>{CABIN_LABELS[itinerary.cabinClass]}</SelectValue>
           </SelectTrigger>
           <SelectContent>
             {Object.entries(CABIN_LABELS).map(([value, label]) => (
@@ -69,15 +74,15 @@ export const PlanSettings: FC = () => {
           value={String(itinerary.mileageBand)}
         >
           <SelectTrigger className="h-10 w-full" id="mileage-band">
-            <SelectValue />
+            <SelectValue>
+              {getMileageBandLabel(itinerary.mileageBand)}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="auto">
-              Auto · smallest compatible band
-            </SelectItem>
+            <SelectItem value="auto">{getMileageBandLabel("auto")}</SelectItem>
             {compatibleBands.map((band: MileageBand) => (
               <SelectItem key={band} value={String(band)}>
-                {(band / 1_000).toFixed(0)}K miles
+                {getMileageBandLabel(band)}
               </SelectItem>
             ))}
           </SelectContent>

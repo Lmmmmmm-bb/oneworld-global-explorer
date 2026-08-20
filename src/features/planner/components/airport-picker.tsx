@@ -26,6 +26,8 @@ interface AirportPickerProps {
   value: string
   candidates: Airport[]
   onChange: (airport: Airport) => void
+  onOpenChange: (open: boolean) => void
+  open: boolean
   carrierCounts?: Map<string, number>
   disabled?: boolean
   placeholder?: string
@@ -36,11 +38,12 @@ export const AirportPicker: FC<AirportPickerProps> = ({
   value,
   candidates,
   onChange,
+  onOpenChange,
+  open,
   carrierCounts,
   disabled = false,
   placeholder = "Choose an airport",
 }) => {
-  const [open, setOpen] = useState(false)
   const [query, setQuery] = useState("")
   const selected = candidates.find((airport) => airport.iata === value)
   const results = useMemo(
@@ -49,28 +52,28 @@ export const AirportPicker: FC<AirportPickerProps> = ({
   )
 
   const handleOpenChange = (nextOpen: boolean) => {
-    setOpen(nextOpen)
+    onOpenChange(nextOpen)
     if (!nextOpen) setQuery("")
   }
 
   return (
-    <div className="space-y-2">
+    <div className="min-w-0 space-y-2">
       <span className="text-xs font-medium text-foreground">{label}</span>
       <Dialog open={open} onOpenChange={handleOpenChange}>
         <Button
           aria-haspopup="dialog"
           className={cn(
-            "h-auto min-h-11 w-full justify-between px-3 py-2 text-left font-normal",
+            "h-auto min-h-11 min-w-0 w-full justify-between overflow-hidden px-3 py-2 text-left font-normal",
             !selected && "text-muted-foreground"
           )}
           disabled={disabled}
-          onClick={() => setOpen(true)}
+          onClick={() => handleOpenChange(true)}
           type="button"
           variant="outline"
         >
           {selected ? (
-            <span className="min-w-0">
-              <span className="block font-semibold text-foreground">
+            <span className="min-w-0 flex-1 overflow-hidden">
+              <span className="block truncate font-semibold text-foreground">
                 {selected.iata} · {selected.city}
               </span>
               <span className="block truncate text-[11px] text-muted-foreground">
@@ -78,7 +81,7 @@ export const AirportPicker: FC<AirportPickerProps> = ({
               </span>
             </span>
           ) : (
-            <span>{placeholder}</span>
+            <span className="min-w-0 flex-1 truncate">{placeholder}</span>
           )}
           <ChevronsUpDown aria-hidden="true" className="size-4 shrink-0" />
         </Button>

@@ -12,8 +12,8 @@ export const ItineraryEmptyState: FC<ItineraryEmptyStateProps> = ({
   onAddFlight,
 }) => (
   <Card className="min-h-[430px] justify-center border-dashed bg-card/70">
-    <CardHeader className="mx-auto max-w-lg items-center text-center">
-      <div className="mb-4 grid size-12 place-items-center border bg-muted/60">
+    <CardHeader className="mx-auto w-full max-w-lg items-center text-center">
+      <div className="mx-auto mb-4 grid size-12 place-items-center border bg-muted/60">
         <Route aria-hidden="true" className="size-5 text-primary" />
       </div>
       <CardTitle className="text-xl">Build your first route</CardTitle>

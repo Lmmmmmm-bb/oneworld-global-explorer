@@ -21,6 +21,11 @@ import { cn } from "@/lib/utils"
 import { useItineraryStore } from "@/stores"
 
 import { buildGlobeRouteData } from "../globe-data"
+import {
+  resolveReleaseAngularVelocity,
+  smoothAngularVelocity,
+  stepAngularInertia,
+} from "../globe-motion"
 
 type GlobeAvailability = "checking" | "available" | "unavailable"
 
@@ -30,6 +35,9 @@ interface ActivePointer {
 }
 
 interface DragGesture {
+  angularVelocity: number
+  lastSampleAt: number
+  lastX: number
   pointerId: number
   startPhi: number
   startTheta: number
@@ -50,6 +58,12 @@ const INITIAL_SCALE = 0.9
 const AUTO_ROTATE_RADIANS_PER_MS = 0.00006
 const INTERACTION_PAUSE_MS = 1_800
 const FOCUS_ANIMATION_MS = 650
+const INERTIA_MAXIMUM_VELOCITY = 0.006
+const INERTIA_MINIMUM_VELOCITY = 0.00002
+const INERTIA_SAMPLE_MAXIMUM_AGE_MS = 80
+const INERTIA_SMOOTHING = 0.25
+const INERTIA_TIME_CONSTANT_MS = 325
+const POST_INERTIA_PAUSE_MS = 250
 const GLOBE_CONTEXT = {
   alpha: true,
   antialias: true,
@@ -110,6 +124,7 @@ export const RouteMap: FC = () => {
   const thetaRef = useRef(0.18)
   const activePointersRef = useRef(new Map<number, ActivePointer>())
   const dragGestureRef = useRef<DragGesture | null>(null)
+  const inertiaVelocityRef = useRef(0)
   const focusAnimationRef = useRef<FocusAnimation | null>(null)
   const animationTimestampRef = useRef(0)
   const resumeRotationAtRef = useRef(0)
@@ -132,6 +147,7 @@ export const RouteMap: FC = () => {
   }
 
   const focusAirport = (latitude: number, longitude: number) => {
+    inertiaVelocityRef.current = 0
     const target = getInitialView(latitude, longitude)
     const targetPhi = getShortestRotation(phiRef.current, target.phi)
 
@@ -228,6 +244,7 @@ export const RouteMap: FC = () => {
     reducedMotionRef.current = reducedMotion.matches
     const handleReducedMotionChange = () => {
       reducedMotionRef.current = reducedMotion.matches
+      if (reducedMotion.matches) inertiaVelocityRef.current = 0
     }
     reducedMotion.addEventListener("change", handleReducedMotionChange)
     let animationFrame = 0
@@ -261,6 +278,27 @@ export const RouteMap: FC = () => {
         if (progress === 1) {
           focusAnimationRef.current = null
           resumeRotationAtRef.current = timestamp + INTERACTION_PAUSE_MS
+        }
+      } else if (
+        !reducedMotion.matches &&
+        activePointersRef.current.size === 0 &&
+        inertiaVelocityRef.current !== 0
+      ) {
+        const inertia = stepAngularInertia({
+          elapsedMs: elapsed,
+          minimumVelocity: INERTIA_MINIMUM_VELOCITY,
+          timeConstantMs: INERTIA_TIME_CONSTANT_MS,
+          velocity: inertiaVelocityRef.current,
+        })
+        phiRef.current += inertia.rotation
+        inertiaVelocityRef.current = inertia.velocity
+        globe.update({ phi: phiRef.current })
+
+        if (!inertia.active) {
+          resumeRotationAtRef.current = Math.max(
+            resumeRotationAtRef.current,
+            timestamp + POST_INERTIA_PAUSE_MS
+          )
         }
       } else if (
         !reducedMotion.matches &&
@@ -325,6 +363,7 @@ export const RouteMap: FC = () => {
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     focusAnimationRef.current = null
+    inertiaVelocityRef.current = 0
     event.currentTarget.setPointerCapture(event.pointerId)
     activePointersRef.current.set(event.pointerId, {
       x: event.clientX,
@@ -334,6 +373,9 @@ export const RouteMap: FC = () => {
     const pointers = [...activePointersRef.current.values()]
     if (pointers.length === 1) {
       dragGestureRef.current = {
+        angularVelocity: 0,
+        lastSampleAt: event.timeStamp,
+        lastX: event.clientX,
         pointerId: event.pointerId,
         startPhi: phiRef.current,
         startTheta: thetaRef.current,
@@ -360,6 +402,16 @@ export const RouteMap: FC = () => {
     const drag = dragGestureRef.current
     if (!drag || drag.pointerId !== event.pointerId) return
     const sensitivity = Math.PI / Math.max(event.currentTarget.clientWidth, 320)
+    drag.angularVelocity = smoothAngularVelocity({
+      elapsedMs: event.timeStamp - drag.lastSampleAt,
+      maximumVelocity: INERTIA_MAXIMUM_VELOCITY,
+      movement: event.clientX - drag.lastX,
+      previousVelocity: drag.angularVelocity,
+      sensitivity,
+      smoothing: INERTIA_SMOOTHING,
+    })
+    drag.lastSampleAt = event.timeStamp
+    drag.lastX = event.clientX
     phiRef.current = drag.startPhi + (event.clientX - drag.startX) * sensitivity
     if (event.pointerType !== "touch") {
       thetaRef.current = clamp(
@@ -372,6 +424,7 @@ export const RouteMap: FC = () => {
   }
 
   const handlePointerEnd = (event: PointerEvent<HTMLDivElement>) => {
+    const endedDrag = dragGestureRef.current
     activePointersRef.current.delete(event.pointerId)
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId)
@@ -382,6 +435,9 @@ export const RouteMap: FC = () => {
       const [remainingPointer] = remainingPointers
       const [pointerId, pointer] = remainingPointer
       dragGestureRef.current = {
+        angularVelocity: 0,
+        lastSampleAt: event.timeStamp,
+        lastX: pointer.x,
         pointerId,
         startPhi: phiRef.current,
         startTheta: thetaRef.current,
@@ -397,6 +453,20 @@ export const RouteMap: FC = () => {
     }
 
     dragGestureRef.current = null
+    inertiaVelocityRef.current = resolveReleaseAngularVelocity({
+      cancelled: event.type === "pointercancel",
+      maximumSampleAgeMs: INERTIA_SAMPLE_MAXIMUM_AGE_MS,
+      minimumVelocity: INERTIA_MINIMUM_VELOCITY,
+      reducedMotion: reducedMotionRef.current,
+      sampleAgeMs:
+        endedDrag && endedDrag.pointerId === event.pointerId
+          ? Math.max(0, event.timeStamp - endedDrag.lastSampleAt)
+          : Number.POSITIVE_INFINITY,
+      velocity:
+        endedDrag && endedDrag.pointerId === event.pointerId
+          ? endedDrag.angularVelocity
+          : 0,
+    })
     pauseAutoRotation()
     setIsDragging(false)
   }
@@ -425,6 +495,7 @@ export const RouteMap: FC = () => {
     if (!handled) return
     event.preventDefault()
     focusAnimationRef.current = null
+    inertiaVelocityRef.current = 0
     pauseAutoRotation()
     updateView()
   }

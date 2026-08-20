@@ -71,14 +71,14 @@ export const ValidationPanel: FC = () => {
     : 100
 
   return (
-    <Card>
-      <CardHeader className="border-b">
+    <Card className="gap-0 py-0">
+      <CardHeader className="border-b py-4">
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="text-sm">Route validation</CardTitle>
           <StatusPill status={validation.status} />
         </div>
       </CardHeader>
-      <CardContent className="space-y-5">
+      <CardContent className="space-y-5 py-4">
         <div className="space-y-2">
           <div className="flex items-end justify-between gap-3">
             <div>
@@ -145,21 +145,20 @@ export const ValidationPanel: FC = () => {
             ))}
           </ul>
         ) : null}
-
-        <p className="border-t pt-4 text-[11px] leading-5 text-muted-foreground">
-          Basic planning checks only. This does not confirm pricing, inventory,
-          booking class, ticketing agreements, or ticket issuance. Read the{" "}
-          <a
-            className="font-medium text-foreground underline underline-offset-3"
-            href={APP_CONFIG.officialTermsUrl}
-            rel="noreferrer"
-            target="_blank"
-          >
-            official terms
-          </a>
-          .
-        </p>
       </CardContent>
+      <p className="border-t px-4 py-4 text-[11px] leading-5 text-muted-foreground">
+        Basic planning checks only. This does not confirm pricing, inventory,
+        booking class, ticketing agreements, or ticket issuance. Read the{" "}
+        <a
+          className="font-medium text-foreground underline underline-offset-3"
+          href={APP_CONFIG.officialTermsUrl}
+          rel="noreferrer"
+          target="_blank"
+        >
+          official terms
+        </a>
+        .
+      </p>
     </Card>
   )
 }

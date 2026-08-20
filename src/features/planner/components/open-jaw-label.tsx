@@ -14,7 +14,7 @@ export const OpenJawLabel: FC<OpenJawLabelProps> = ({ openJaw }) => {
   const to = airportByIata.get(openJaw.to)
 
   return (
-    <div className="relative flex items-center gap-3 py-2 pl-5 text-xs text-muted-foreground before:absolute before:top-0 before:bottom-0 before:left-[19px] before:border-l before:border-dashed">
+    <div className="relative flex items-center gap-3 py-2 pl-5 text-xs text-muted-foreground before:absolute before:top-0 before:bottom-0 before:left-[33px] before:border-l before:border-dashed">
       <span className="relative z-10 grid size-7 shrink-0 place-items-center rounded-full border border-dashed bg-background text-primary">
         <CarFront aria-hidden="true" className="size-3.5" />
       </span>

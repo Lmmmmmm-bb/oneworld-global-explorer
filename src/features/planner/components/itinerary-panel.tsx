@@ -33,7 +33,7 @@ export const ItineraryPanel: FC<ItineraryPanelProps> = ({
   if (itinerary.flights.length === 0) {
     return (
       <div className="space-y-4">
-        <Card className="overflow-hidden py-0">
+        <Card className="gap-0 overflow-hidden py-0">
           <PlanSettings />
         </Card>
         <ItineraryEmptyState onAddFlight={onAddFlight} />
@@ -46,7 +46,7 @@ export const ItineraryPanel: FC<ItineraryPanelProps> = ({
   )
 
   return (
-    <Card className="overflow-hidden py-0">
+    <Card className="gap-0 overflow-hidden py-0">
       <PlanSettings />
       <div className="flex items-center justify-between gap-4 border-b px-4 py-3">
         <div>
@@ -60,21 +60,23 @@ export const ItineraryPanel: FC<ItineraryPanelProps> = ({
           Add flight
         </Button>
       </div>
-      <div className="space-y-0 p-4">
-        {itinerary.flights.map((flight, index) => {
-          const openJaw = openJawsByPreviousFlight.get(flight.id)
-          return (
-            <div key={flight.id}>
-              <FlightCard
-                flight={flight}
-                index={index}
-                onDelete={() => deleteFlight(flight.id)}
-                onEdit={() => onEditFlight(flight)}
-              />
-              {openJaw ? <OpenJawLabel openJaw={openJaw} /> : null}
-            </div>
-          )
-        })}
+      <div className="p-4">
+        <div className="divide-y border">
+          {itinerary.flights.map((flight, index) => {
+            const openJaw = openJawsByPreviousFlight.get(flight.id)
+            return (
+              <div key={flight.id}>
+                <FlightCard
+                  flight={flight}
+                  index={index}
+                  onDelete={() => deleteFlight(flight.id)}
+                  onEdit={() => onEditFlight(flight)}
+                />
+                {openJaw ? <OpenJawLabel openJaw={openJaw} /> : null}
+              </div>
+            )
+          })}
+        </div>
       </div>
       <div className="flex items-start justify-between gap-5 border-t bg-muted/20 p-4">
         <div className="space-y-1">

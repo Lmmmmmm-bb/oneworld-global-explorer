@@ -44,11 +44,21 @@ interface PinchGesture {
   startScale: number
 }
 
+interface FocusAnimation {
+  duration: number
+  fromPhi: number
+  fromTheta: number
+  startedAt: number | null
+  toPhi: number
+  toTheta: number
+}
+
 const INITIAL_SCALE = 0.9
 const MIN_SCALE = 0.72
 const MAX_SCALE = 1.08
 const AUTO_ROTATE_RADIANS_PER_MS = 0.00006
 const INTERACTION_PAUSE_MS = 1_800
+const FOCUS_ANIMATION_MS = 650
 const GLOBE_CONTEXT = {
   alpha: true,
   antialias: true,
@@ -59,6 +69,11 @@ const GLOBE_CONTEXT = {
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(maximum, Math.max(minimum, value))
+
+const easeOutCubic = (progress: number) => 1 - (1 - progress) ** 3
+
+const getShortestRotation = (from: number, to: number) =>
+  from + Math.atan2(Math.sin(to - from), Math.cos(to - from))
 
 const getPointerDistance = (pointers: ActivePointer[]) => {
   if (pointers.length < 2) return 0
@@ -106,6 +121,7 @@ export const RouteMap: FC = () => {
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const canvasMountRef = useRef<HTMLDivElement>(null)
+  const interactionSurfaceRef = useRef<HTMLDivElement>(null)
   const globeRef = useRef<Globe | null>(null)
   const phiRef = useRef(0)
   const thetaRef = useRef(0.18)
@@ -113,8 +129,11 @@ export const RouteMap: FC = () => {
   const activePointersRef = useRef(new Map<number, ActivePointer>())
   const dragGestureRef = useRef<DragGesture | null>(null)
   const pinchGestureRef = useRef<PinchGesture | null>(null)
+  const focusAnimationRef = useRef<FocusAnimation | null>(null)
+  const animationTimestampRef = useRef(0)
   const resumeRotationAtRef = useRef(0)
   const hasCenteredRouteRef = useRef(false)
+  const reducedMotionRef = useRef(false)
   const [availability, setAvailability] =
     useState<GlobeAvailability>("checking")
   const [isDragging, setIsDragging] = useState(false)
@@ -128,13 +147,39 @@ export const RouteMap: FC = () => {
   }
 
   const pauseAutoRotation = () => {
-    resumeRotationAtRef.current = performance.now() + INTERACTION_PAUSE_MS
+    resumeRotationAtRef.current =
+      animationTimestampRef.current + INTERACTION_PAUSE_MS
+  }
+
+  const focusAirport = (latitude: number, longitude: number) => {
+    const target = getInitialView(latitude, longitude)
+    const targetPhi = getShortestRotation(phiRef.current, target.phi)
+
+    if (reducedMotionRef.current) {
+      focusAnimationRef.current = null
+      phiRef.current = targetPhi
+      thetaRef.current = target.theta
+      pauseAutoRotation()
+      updateView()
+      return
+    }
+
+    focusAnimationRef.current = {
+      duration: FOCUS_ANIMATION_MS,
+      fromPhi: phiRef.current,
+      fromTheta: thetaRef.current,
+      startedAt: null,
+      toPhi: targetPhi,
+      toTheta: target.theta,
+    }
+    resumeRotationAtRef.current = Number.POSITIVE_INFINITY
   }
 
   useEffect(() => {
     const canvas = canvasRef.current
     const canvasMount = canvasMountRef.current
-    if (!canvas || !canvasMount) return
+    const interactionSurface = interactionSurfaceRef.current
+    if (!canvas || !canvasMount || !interactionSurface) return
 
     const webGlContext =
       canvas.getContext("webgl2", GLOBE_CONTEXT) ??
@@ -143,6 +188,23 @@ export const RouteMap: FC = () => {
       setAvailability("unavailable")
       return
     }
+
+    const preventMultiTouchZoom = (event: TouchEvent) => {
+      if (event.touches.length > 1) event.preventDefault()
+    }
+    const preventGestureZoom = (event: Event) => event.preventDefault()
+    interactionSurface.addEventListener("touchstart", preventMultiTouchZoom, {
+      passive: false,
+    })
+    interactionSurface.addEventListener("touchmove", preventMultiTouchZoom, {
+      passive: false,
+    })
+    interactionSurface.addEventListener("gesturestart", preventGestureZoom, {
+      passive: false,
+    })
+    interactionSurface.addEventListener("gesturechange", preventGestureZoom, {
+      passive: false,
+    })
 
     const bounds = canvasMount.getBoundingClientRect()
     const devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2)
@@ -183,12 +245,44 @@ export const RouteMap: FC = () => {
     resizeObserver.observe(canvasMount)
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
+    reducedMotionRef.current = reducedMotion.matches
+    const handleReducedMotionChange = () => {
+      reducedMotionRef.current = reducedMotion.matches
+    }
+    reducedMotion.addEventListener("change", handleReducedMotionChange)
     let animationFrame = 0
-    let previousFrame = performance.now()
+    let previousFrame: number | null = null
     const animate = (timestamp: number) => {
-      const elapsed = Math.min(timestamp - previousFrame, 32)
+      const elapsed = Math.min(
+        previousFrame === null ? 0 : timestamp - previousFrame,
+        32
+      )
       previousFrame = timestamp
-      if (
+      animationTimestampRef.current = timestamp
+      const focusAnimation = focusAnimationRef.current
+
+      if (focusAnimation) {
+        const startedAt = focusAnimation.startedAt ?? timestamp
+        focusAnimation.startedAt = startedAt
+        const progress = clamp(
+          (timestamp - startedAt) / focusAnimation.duration,
+          0,
+          1
+        )
+        const easedProgress = easeOutCubic(progress)
+        phiRef.current =
+          focusAnimation.fromPhi +
+          (focusAnimation.toPhi - focusAnimation.fromPhi) * easedProgress
+        thetaRef.current =
+          focusAnimation.fromTheta +
+          (focusAnimation.toTheta - focusAnimation.fromTheta) * easedProgress
+        globe.update({ phi: phiRef.current, theta: thetaRef.current })
+
+        if (progress === 1) {
+          focusAnimationRef.current = null
+          resumeRotationAtRef.current = timestamp + INTERACTION_PAUSE_MS
+        }
+      } else if (
         !reducedMotion.matches &&
         activePointersRef.current.size === 0 &&
         timestamp >= resumeRotationAtRef.current
@@ -203,6 +297,17 @@ export const RouteMap: FC = () => {
     return () => {
       cancelAnimationFrame(animationFrame)
       resizeObserver.disconnect()
+      reducedMotion.removeEventListener("change", handleReducedMotionChange)
+      interactionSurface.removeEventListener(
+        "touchstart",
+        preventMultiTouchZoom
+      )
+      interactionSurface.removeEventListener("touchmove", preventMultiTouchZoom)
+      interactionSurface.removeEventListener("gesturestart", preventGestureZoom)
+      interactionSurface.removeEventListener(
+        "gesturechange",
+        preventGestureZoom
+      )
       globe.destroy()
       globeRef.current = null
       if (
@@ -239,6 +344,7 @@ export const RouteMap: FC = () => {
   }, [globeArcs, globeMarkers, routeData.markers])
 
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    focusAnimationRef.current = null
     event.currentTarget.setPointerCapture(event.pointerId)
     activePointersRef.current.set(event.pointerId, {
       pointerType: event.pointerType,
@@ -330,6 +436,7 @@ export const RouteMap: FC = () => {
 
   const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
     event.preventDefault()
+    focusAnimationRef.current = null
     scaleRef.current = clamp(
       scaleRef.current - event.deltaY * 0.0007,
       MIN_SCALE,
@@ -379,6 +486,7 @@ export const RouteMap: FC = () => {
 
     if (!handled) return
     event.preventDefault()
+    focusAnimationRef.current = null
     pauseAutoRotation()
     updateView()
   }
@@ -387,7 +495,7 @@ export const RouteMap: FC = () => {
 
   return (
     <Card
-      className="overflow-hidden py-0"
+      className="gap-0 overflow-hidden py-0"
       hidden={availability !== "available"}
     >
       <div
@@ -402,6 +510,7 @@ export const RouteMap: FC = () => {
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerEnd}
         onWheel={handleWheel}
+        ref={interactionSurfaceRef}
         role="region"
         tabIndex={0}
       >
@@ -434,25 +543,29 @@ export const RouteMap: FC = () => {
 
       {routeData.markers.length > 0 ? (
         <div className="border-t px-3 py-2.5">
-          <div className="overflow-x-auto pb-0.5">
-            <ul
-              aria-label="Airports shown on the globe"
-              className="flex w-max min-w-full gap-1.5"
-            >
-              {routeData.markers.map(({ airport, id }) => (
-                <li
-                  className="flex max-w-56 shrink-0 items-center gap-1.5 border bg-background px-2 py-1 text-[10px]"
-                  key={id}
+          <ul
+            aria-label="Airports shown on the globe"
+            className="flex flex-wrap gap-1.5"
+          >
+            {routeData.markers.map(({ airport, id }) => (
+              <li className="max-w-full min-w-0" key={id}>
+                <button
+                  aria-label={`Focus globe on ${airport.iata}, ${airport.name}`}
+                  className="flex max-w-full min-w-0 items-center gap-1.5 border bg-background px-2 py-1 text-left text-[10px] transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none"
+                  onClick={() =>
+                    focusAirport(airport.latitude, airport.longitude)
+                  }
                   title={`${airport.iata} · ${airport.name}, ${airport.city}`}
+                  type="button"
                 >
                   <span className="font-bold text-primary">{airport.iata}</span>
-                  <span className="truncate text-muted-foreground">
+                  <span className="min-w-0 truncate text-muted-foreground">
                     {airport.name}
                   </span>
-                </li>
-              ))}
-            </ul>
-          </div>
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
 

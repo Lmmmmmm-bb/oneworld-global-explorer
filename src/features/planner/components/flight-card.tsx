@@ -32,7 +32,7 @@ export const FlightCard: FC<FlightCardProps> = ({
   const distance = from && to ? haversineMiles(from, to) : null
 
   return (
-    <article className="group relative border bg-background p-4 shadow-xs transition-colors hover:border-primary/30">
+    <article className="group relative bg-background p-4 transition-colors hover:bg-muted/15">
       <div className="flex items-start gap-3">
         <div className="grid size-8 shrink-0 place-items-center bg-primary/10 text-xs font-semibold text-primary">
           {index + 1}

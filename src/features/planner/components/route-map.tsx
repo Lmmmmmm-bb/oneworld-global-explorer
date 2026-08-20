@@ -7,7 +7,6 @@ import {
   type FC,
   type KeyboardEvent,
   type PointerEvent,
-  type WheelEvent,
 } from "react"
 import createGlobe, {
   type Arc,
@@ -26,7 +25,6 @@ import { buildGlobeRouteData } from "../globe-data"
 type GlobeAvailability = "checking" | "available" | "unavailable"
 
 interface ActivePointer {
-  pointerType: string
   x: number
   y: number
 }
@@ -39,11 +37,6 @@ interface DragGesture {
   startY: number
 }
 
-interface PinchGesture {
-  startDistance: number
-  startScale: number
-}
-
 interface FocusAnimation {
   duration: number
   fromPhi: number
@@ -54,8 +47,6 @@ interface FocusAnimation {
 }
 
 const INITIAL_SCALE = 0.9
-const MIN_SCALE = 0.72
-const MAX_SCALE = 1.08
 const AUTO_ROTATE_RADIANS_PER_MS = 0.00006
 const INTERACTION_PAUSE_MS = 1_800
 const FOCUS_ANIMATION_MS = 650
@@ -74,14 +65,6 @@ const easeOutCubic = (progress: number) => 1 - (1 - progress) ** 3
 
 const getShortestRotation = (from: number, to: number) =>
   from + Math.atan2(Math.sin(to - from), Math.cos(to - from))
-
-const getPointerDistance = (pointers: ActivePointer[]) => {
-  if (pointers.length < 2) return 0
-  return Math.hypot(
-    pointers[0].x - pointers[1].x,
-    pointers[0].y - pointers[1].y
-  )
-}
 
 const getInitialView = (latitude: number, longitude: number) => ({
   phi: -Math.PI / 2 - (longitude * Math.PI) / 180,
@@ -125,10 +108,8 @@ export const RouteMap: FC = () => {
   const globeRef = useRef<Globe | null>(null)
   const phiRef = useRef(0)
   const thetaRef = useRef(0.18)
-  const scaleRef = useRef(INITIAL_SCALE)
   const activePointersRef = useRef(new Map<number, ActivePointer>())
   const dragGestureRef = useRef<DragGesture | null>(null)
-  const pinchGestureRef = useRef<PinchGesture | null>(null)
   const focusAnimationRef = useRef<FocusAnimation | null>(null)
   const animationTimestampRef = useRef(0)
   const resumeRotationAtRef = useRef(0)
@@ -141,7 +122,6 @@ export const RouteMap: FC = () => {
   const updateView = () => {
     globeRef.current?.update({
       phi: phiRef.current,
-      scale: scaleRef.current,
       theta: thetaRef.current,
     })
   }
@@ -227,7 +207,7 @@ export const RouteMap: FC = () => {
       markers: [],
       opacity: 1,
       phi: phiRef.current,
-      scale: scaleRef.current,
+      scale: INITIAL_SCALE,
       theta: thetaRef.current,
       width: Math.max(1, Math.round(bounds.width)),
     }
@@ -338,7 +318,7 @@ export const RouteMap: FC = () => {
       arcs: globeArcs,
       markers: globeMarkers,
       phi: phiRef.current,
-      scale: scaleRef.current,
+      scale: INITIAL_SCALE,
       theta: thetaRef.current,
     })
   }, [globeArcs, globeMarkers, routeData.markers])
@@ -347,7 +327,6 @@ export const RouteMap: FC = () => {
     focusAnimationRef.current = null
     event.currentTarget.setPointerCapture(event.pointerId)
     activePointersRef.current.set(event.pointerId, {
-      pointerType: event.pointerType,
       x: event.clientX,
       y: event.clientY,
     })
@@ -362,10 +341,7 @@ export const RouteMap: FC = () => {
         startY: event.clientY,
       }
     } else {
-      pinchGestureRef.current = {
-        startDistance: getPointerDistance(pointers),
-        startScale: scaleRef.current,
-      }
+      dragGestureRef.current = null
     }
     resumeRotationAtRef.current = Number.POSITIVE_INFINITY
     setIsDragging(true)
@@ -374,25 +350,12 @@ export const RouteMap: FC = () => {
   const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     if (!activePointersRef.current.has(event.pointerId)) return
     activePointersRef.current.set(event.pointerId, {
-      pointerType: event.pointerType,
       x: event.clientX,
       y: event.clientY,
     })
 
     const pointers = [...activePointersRef.current.values()]
-    if (pointers.length >= 2) {
-      const distance = getPointerDistance(pointers)
-      const pinch = pinchGestureRef.current
-      if (pinch?.startDistance) {
-        scaleRef.current = clamp(
-          pinch.startScale * (distance / pinch.startDistance),
-          MIN_SCALE,
-          MAX_SCALE
-        )
-        updateView()
-      }
-      return
-    }
+    if (pointers.length !== 1) return
 
     const drag = dragGestureRef.current
     if (!drag || drag.pointerId !== event.pointerId) return
@@ -414,8 +377,9 @@ export const RouteMap: FC = () => {
       event.currentTarget.releasePointerCapture(event.pointerId)
     }
 
-    const [remainingPointer] = activePointersRef.current.entries()
-    if (remainingPointer) {
+    const remainingPointers = [...activePointersRef.current.entries()]
+    if (remainingPointers.length === 1) {
+      const [remainingPointer] = remainingPointers
       const [pointerId, pointer] = remainingPointer
       dragGestureRef.current = {
         pointerId,
@@ -424,31 +388,21 @@ export const RouteMap: FC = () => {
         startX: pointer.x,
         startY: pointer.y,
       }
-      pinchGestureRef.current = null
+      return
+    }
+
+    if (remainingPointers.length > 1) {
+      dragGestureRef.current = null
       return
     }
 
     dragGestureRef.current = null
-    pinchGestureRef.current = null
     pauseAutoRotation()
     setIsDragging(false)
   }
 
-  const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
-    event.preventDefault()
-    focusAnimationRef.current = null
-    scaleRef.current = clamp(
-      scaleRef.current - event.deltaY * 0.0007,
-      MIN_SCALE,
-      MAX_SCALE
-    )
-    pauseAutoRotation()
-    updateView()
-  }
-
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     const rotationStep = 0.12
-    const scaleStep = 0.06
     let handled = true
 
     switch (event.key) {
@@ -463,22 +417,6 @@ export const RouteMap: FC = () => {
         break
       case "ArrowDown":
         thetaRef.current = clamp(thetaRef.current + rotationStep, -1.05, 1.05)
-        break
-      case "+":
-      case "=":
-        scaleRef.current = clamp(
-          scaleRef.current + scaleStep,
-          MIN_SCALE,
-          MAX_SCALE
-        )
-        break
-      case "-":
-      case "_":
-        scaleRef.current = clamp(
-          scaleRef.current - scaleStep,
-          MIN_SCALE,
-          MAX_SCALE
-        )
         break
       default:
         handled = false
@@ -499,7 +437,7 @@ export const RouteMap: FC = () => {
       hidden={availability !== "available"}
     >
       <div
-        aria-label="Interactive globe of the planned flight segments. Drag to rotate and use the wheel or pinch gesture to zoom."
+        aria-label="Interactive globe of the planned flight segments. Drag or use the arrow keys to rotate."
         className={cn(
           "page-grid relative aspect-square min-h-64 touch-pan-y overflow-hidden bg-muted/20 outline-none select-none sm:aspect-[16/10] lg:aspect-square 2xl:aspect-[16/10]",
           isDragging ? "cursor-grabbing" : "cursor-grab"
@@ -509,7 +447,6 @@ export const RouteMap: FC = () => {
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerEnd}
-        onWheel={handleWheel}
         ref={interactionSurfaceRef}
         role="region"
         tabIndex={0}

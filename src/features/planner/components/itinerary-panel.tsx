@@ -1,4 +1,4 @@
-import type { FC } from "react"
+import { Fragment, type FC } from "react"
 import { Plus } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
@@ -11,7 +11,7 @@ import { useItineraryStore } from "@/stores"
 
 import { FlightCard } from "./flight-card"
 import { ItineraryEmptyState } from "./itinerary-empty-state"
-import { OpenJawLabel } from "./open-jaw-label"
+import { OpenJawCard } from "./open-jaw-card"
 import { PlanSettings } from "./plan-settings"
 
 interface ItineraryPanelProps {
@@ -52,7 +52,7 @@ export const ItineraryPanel: FC<ItineraryPanelProps> = ({
         <div>
           <h2 className="text-sm font-semibold">Flight sequence</h2>
           <p className="text-[11px] text-muted-foreground">
-            Flights stay in the order they are added.
+            Flights and open jaws stay in route order.
           </p>
         </div>
         <Button onClick={onAddFlight} size="sm" type="button">
@@ -65,15 +65,15 @@ export const ItineraryPanel: FC<ItineraryPanelProps> = ({
           {itinerary.flights.map((flight, index) => {
             const openJaw = openJawsByPreviousFlight.get(flight.id)
             return (
-              <div key={flight.id}>
+              <Fragment key={flight.id}>
                 <FlightCard
                   flight={flight}
                   index={index}
                   onDelete={() => deleteFlight(flight.id)}
                   onEdit={() => onEditFlight(flight)}
                 />
-                {openJaw ? <OpenJawLabel openJaw={openJaw} /> : null}
-              </div>
+                {openJaw ? <OpenJawCard openJaw={openJaw} /> : null}
+              </Fragment>
             )
           })}
         </div>

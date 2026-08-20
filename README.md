@@ -1,45 +1,89 @@
-# Global Explorer Planner
+# oneworld Global Explorer Planner
 
-An unofficial, offline-first planning and validation tool for oneworld Global
-Explorer itineraries.
+Plan a round-the-world Global Explorer itinerary, see the route on an
+interactive globe, and catch common rule issues as you build.
 
-## Local development
+This is an unofficial, independent planning tool. It is not affiliated with or
+endorsed by oneworld or its member airlines.
 
-```bash
-pnpm install
-pnpm dev
-```
+## What you can do
 
-Run the verification suite with `pnpm build`, `pnpm test`, and `pnpm lint`.
+- Build a trip flight by flight with eligible marketing and operating carriers.
+- Search the included route network by airport and airline.
+- Mark each arrival as a transfer or stopover.
+- Include open jaws and count their surface distance toward the itinerary.
+- See estimated mileage, remaining mileage, stopovers, segments, and region
+  order at a glance.
+- Compare a trip with the available 26,000, 29,000, 34,000, and 39,000-mile
+  bands.
+- View flight segments and airports on an interactive globe.
+- Import and export a plan as JSON for backup or sharing.
 
-The planner is a pure front-end application. Route data is checked into the
-repository, and the Cobe route globe is bundled with the app, so normal use
-does not require a route-data or map API.
+## Plan an itinerary
 
-## Route data
+1. Choose a cabin and let the planner select a mileage band automatically, or
+   select a band yourself.
+2. Add flights in travel order. Choose the marketing carrier, operating
+   carrier, origin, destination, and whether the arrival is a transfer or
+   stopover.
+3. If two consecutive flights do not connect at the same airport, the planner
+   treats the gap as an open jaw and includes it in the totals.
+4. Follow the mileage summary, globe, and validation panel while adjusting the
+   route.
+5. Export the itinerary when you want a portable backup. Import that JSON file
+   later to continue planning.
 
-Run `pnpm data:update` explicitly to refresh the filtered snapshot from
-[Jonty's airline route data](https://github.com/Jonty/airline-route-data). The
-snapshot records the exact source commit and includes only routes attributed to
-the Global Explorer carrier allowlist.
+Your current itinerary is saved automatically in this browser.
 
-The upstream repository does not currently publish a license. Confirm the
-appropriate data rights before publicly or commercially distributing a build.
+## Understand the validation status
 
-## Validation scope
+- **Incomplete** means the itinerary still needs flights or another required
+  part of the journey.
+- **Invalid** means the planner found at least one route-derived rule conflict.
+- **Valid** means the route passes the checks implemented by this planner. It
+  does not guarantee that the itinerary can be priced, booked, or ticketed.
 
-The rule engine implements itinerary-derived checks from sections 4 and 8 of
-[Global Explorer Rule 9701 (27 February 2026)](https://assets.ctfassets.net/m9ph4qvas97u/2pqmhTK95sqIsn5UP02lz/a55a65324e4eff966e9d520216b6c307/Global_Explorer_27_FEB_26.pdf).
-It deliberately does not determine pricing, inventory, booking-class
-availability, ticketing agreements, or whether a carrier will issue a ticket.
+The planner checks eligible carriers and known routes, mileage-band and cabin
+compatibility, segment limits, itinerary closure, Atlantic and Pacific
+crossings, intercontinental direction, stopovers, regional entry and exit
+limits, and open-jaw restrictions.
 
-## Route globe
+These checks are based on sections 4 and 8 of
+[Global Explorer Rule 9701 dated 27 February 2026](https://assets.ctfassets.net/m9ph4qvas97u/2pqmhTK95sqIsn5UP02lz/a55a65324e4eff966e9d520216b6c307/Global_Explorer_27_FEB_26.pdf).
 
-The route overview uses [Cobe](https://github.com/shuding/cobe) to render an
-interactive WebGL globe with airport markers and arcs for flight segments.
-Open jaws are intentionally omitted. The globe is hidden when WebGL is not
-available and does not require an API key or runtime network request.
+## Privacy and offline use
 
-## Follow-up ideas
+The planner runs entirely in your browser. Your itinerary is stored in browser
+local storage and is not uploaded by the application. The route network and
+globe are bundled with the app, so normal planning does not require a route or
+map service.
 
-- Add full operation history with multi-step undo and redo.
+Clearing browser data can remove a saved itinerary. Export your plan as JSON if
+you want a separate backup.
+
+## Route coverage
+
+Route suggestions come from a filtered snapshot of
+[Jonty's airline route data](https://github.com/Jonty/airline-route-data). A
+missing route may reflect incomplete or outdated source data; its absence does
+not prove that a flight does not operate. Schedules and airline participation
+can change, so verify every flight with the airline before booking.
+
+## Important limitations
+
+This planner does not determine:
+
+- fares, taxes, or surcharges;
+- live schedules, inventory, or booking-class availability;
+- minimum connection times;
+- current codeshare or ticketing agreements; or
+- whether a carrier will price or issue the final itinerary.
+
+Mileage figures are estimates. Always read the current official terms and
+confirm the complete itinerary with the issuing carrier before making travel
+arrangements.
+
+## License
+
+The application source is available under the [MIT License](LICENSE). Route
+data is sourced separately and is subject to its upstream terms.

@@ -1,206 +1,463 @@
-import { useEffect, useRef, useState, type FC } from "react"
-import { Globe2, MapPinned, TriangleAlert } from "lucide-react"
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FC,
+  type KeyboardEvent,
+  type PointerEvent,
+  type WheelEvent,
+} from "react"
+import createGlobe, {
+  type Arc,
+  type COBEOptions,
+  type Globe,
+  type Marker,
+} from "cobe"
 
 import { Card, CardContent } from "@/components/ui/card"
 import { airportByIata } from "@/features/route-data"
+import { cn } from "@/lib/utils"
 import { useItineraryStore } from "@/stores"
 
-import { buildRouteGeoJson, buildRoutePoints } from "../map-geometry"
+import { buildGlobeRouteData } from "../globe-data"
 
-type MapStatus = "loading" | "ready" | "error"
+type GlobeAvailability = "checking" | "available" | "unavailable"
 
-const MAPTILER_KEY = import.meta.env.VITE_MAPTILER_KEY?.trim()
-
-interface MapFallbackProps {
-  kind: "missing-key" | "error"
+interface ActivePointer {
+  pointerType: string
+  x: number
+  y: number
 }
 
-const MapFallback: FC<MapFallbackProps> = ({ kind }) => (
-  <div className="page-grid grid aspect-[16/9] min-h-64 place-items-center bg-muted/25 p-6 text-center">
-    <div>
-      {kind === "missing-key" ? (
-        <MapPinned
-          aria-hidden="true"
-          className="mx-auto size-10 text-primary/60"
-        />
-      ) : (
-        <TriangleAlert
-          aria-hidden="true"
-          className="mx-auto size-10 text-amber-600"
-        />
-      )}
-      <p className="mt-3 text-xs font-medium">
-        {kind === "missing-key" ? "Map key not configured" : "Map unavailable"}
-      </p>
-      <p className="mx-auto mt-1 max-w-xs text-[11px] leading-5 text-muted-foreground">
-        {kind === "missing-key"
-          ? "Add VITE_MAPTILER_KEY locally to enable the optional route overview. Planning and validation still work without it."
-          : "The base map could not be loaded. Your itinerary and validation remain available."}
-      </p>
-    </div>
-  </div>
-)
+interface DragGesture {
+  pointerId: number
+  startPhi: number
+  startTheta: number
+  startX: number
+  startY: number
+}
+
+interface PinchGesture {
+  startDistance: number
+  startScale: number
+}
+
+const INITIAL_SCALE = 0.9
+const MIN_SCALE = 0.72
+const MAX_SCALE = 1.08
+const AUTO_ROTATE_RADIANS_PER_MS = 0.00006
+const INTERACTION_PAUSE_MS = 1_800
+const GLOBE_CONTEXT = {
+  alpha: true,
+  antialias: true,
+  depth: false,
+  preserveDrawingBuffer: false,
+  stencil: false,
+} satisfies WebGLContextAttributes
+
+const clamp = (value: number, minimum: number, maximum: number) =>
+  Math.min(maximum, Math.max(minimum, value))
+
+const getPointerDistance = (pointers: ActivePointer[]) => {
+  if (pointers.length < 2) return 0
+  return Math.hypot(
+    pointers[0].x - pointers[1].x,
+    pointers[0].y - pointers[1].y
+  )
+}
+
+const getInitialView = (latitude: number, longitude: number) => ({
+  phi: -Math.PI / 2 - (longitude * Math.PI) / 180,
+  theta: clamp((latitude * Math.PI) / 180, -0.55, 0.55),
+})
+
+const getMarkerStyle = (id: string) =>
+  ({
+    opacity: `var(--cobe-visible-${id}, 0)`,
+    positionAnchor: `--cobe-${id}`,
+  }) as CSSProperties
 
 export const RouteMap: FC = () => {
-  const containerRef = useRef<HTMLDivElement>(null)
   const flights = useItineraryStore((state) => state.itinerary.flights)
-  const [status, setStatus] = useState<MapStatus>("loading")
+  const routeData = useMemo(
+    () => buildGlobeRouteData(flights, airportByIata),
+    [flights]
+  )
+  const globeMarkers = useMemo<Marker[]>(
+    () =>
+      routeData.markers.map(({ id, location }) => ({
+        id,
+        location,
+        size: 0.035,
+      })),
+    [routeData.markers]
+  )
+  const globeArcs = useMemo<Arc[]>(
+    () =>
+      routeData.arcs.map(({ from, id, to }) => ({
+        from,
+        id,
+        to,
+      })),
+    [routeData.arcs]
+  )
+
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const canvasMountRef = useRef<HTMLDivElement>(null)
+  const globeRef = useRef<Globe | null>(null)
+  const phiRef = useRef(0)
+  const thetaRef = useRef(0.18)
+  const scaleRef = useRef(INITIAL_SCALE)
+  const activePointersRef = useRef(new Map<number, ActivePointer>())
+  const dragGestureRef = useRef<DragGesture | null>(null)
+  const pinchGestureRef = useRef<PinchGesture | null>(null)
+  const resumeRotationAtRef = useRef(0)
+  const hasCenteredRouteRef = useRef(false)
+  const [availability, setAvailability] =
+    useState<GlobeAvailability>("checking")
+  const [isDragging, setIsDragging] = useState(false)
+
+  const updateView = () => {
+    globeRef.current?.update({
+      phi: phiRef.current,
+      scale: scaleRef.current,
+      theta: thetaRef.current,
+    })
+  }
+
+  const pauseAutoRotation = () => {
+    resumeRotationAtRef.current = performance.now() + INTERACTION_PAUSE_MS
+  }
 
   useEffect(() => {
-    if (!MAPTILER_KEY || !containerRef.current) return
-    let cancelled = false
-    let mapInstance: import("maplibre-gl").Map | null = null
+    const canvas = canvasRef.current
+    const canvasMount = canvasMountRef.current
+    if (!canvas || !canvasMount) return
 
-    const initializeMap = async () => {
-      try {
-        const maplibre = await import("maplibre-gl")
-        if (cancelled || !containerRef.current) return
+    const webGlContext =
+      canvas.getContext("webgl2", GLOBE_CONTEXT) ??
+      canvas.getContext("webgl", GLOBE_CONTEXT)
+    if (!webGlContext) {
+      setAvailability("unavailable")
+      return
+    }
 
-        const routeData = buildRouteGeoJson(flights, airportByIata)
-        const routePoints = buildRoutePoints(flights, airportByIata)
-        const map = new maplibre.Map({
-          container: containerRef.current,
-          style: `https://api.maptiler.com/maps/streets-v4/style.json?key=${encodeURIComponent(MAPTILER_KEY)}`,
-          center: [10, 15],
-          zoom: 0.6,
-          interactive: false,
-          attributionControl: false,
-          renderWorldCopies: false,
-          fadeDuration: 0,
-        })
-        mapInstance = map
-        map.getCanvas().setAttribute("tabindex", "-1")
-        map.getCanvas().setAttribute("aria-hidden", "true")
-        map.addControl(new maplibre.AttributionControl({ compact: false }))
+    const bounds = canvasMount.getBoundingClientRect()
+    const devicePixelRatio = Math.min(window.devicePixelRatio || 1, 2)
+    const options: COBEOptions = {
+      arcColor: [0.04, 0.55, 0.39],
+      arcHeight: 0.22,
+      arcs: [],
+      arcWidth: 0.7,
+      baseColor: [0.78, 0.86, 0.83],
+      dark: 0,
+      devicePixelRatio,
+      diffuse: 1.15,
+      glowColor: [0.93, 0.98, 0.96],
+      height: Math.max(1, Math.round(bounds.height)),
+      mapBaseBrightness: 0.02,
+      mapBrightness: 4.6,
+      mapSamples: 16_000,
+      markerColor: [0.04, 0.55, 0.39],
+      markerElevation: 0.025,
+      markers: [],
+      opacity: 1,
+      phi: phiRef.current,
+      scale: scaleRef.current,
+      theta: thetaRef.current,
+      width: Math.max(1, Math.round(bounds.width)),
+    }
+    const globe = createGlobe(canvas, options)
+    const cobeWrapper = canvas.parentElement
+    globeRef.current = globe
+    setAvailability("available")
 
-        map.on("load", () => {
-          if (cancelled) return
-          map.addSource("flight-routes", {
-            type: "geojson",
-            data: routeData,
-          })
-          map.addLayer({
-            id: "flight-route-casing",
-            type: "line",
-            source: "flight-routes",
-            paint: {
-              "line-color": "#ffffff",
-              "line-opacity": 0.9,
-              "line-width": ["interpolate", ["linear"], ["zoom"], 0, 3, 5, 5],
-            },
-          })
-          map.addLayer({
-            id: "flight-routes",
-            type: "line",
-            source: "flight-routes",
-            paint: {
-              "line-color": "#168368",
-              "line-opacity": 0.92,
-              "line-width": [
-                "interpolate",
-                ["linear"],
-                ["zoom"],
-                0,
-                1.5,
-                5,
-                2.5,
-              ],
-            },
-          })
+    const resizeObserver = new ResizeObserver(([entry]) => {
+      globe.update({
+        height: Math.max(1, Math.round(entry.contentRect.height)),
+        width: Math.max(1, Math.round(entry.contentRect.width)),
+      })
+    })
+    resizeObserver.observe(canvasMount)
 
-          for (const point of routePoints) {
-            const marker = document.createElement("div")
-            marker.className = "route-map-marker"
-            marker.textContent = point.sequence
-            marker.title = `${point.sequence}. ${point.airport.city} (${point.airport.iata})`
-            marker.setAttribute("aria-hidden", "true")
-            new maplibre.Marker({ element: marker, anchor: "center" })
-              .setLngLat([point.airport.longitude, point.airport.latitude])
-              .addTo(map)
-          }
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)")
+    let animationFrame = 0
+    let previousFrame = performance.now()
+    const animate = (timestamp: number) => {
+      const elapsed = Math.min(timestamp - previousFrame, 32)
+      previousFrame = timestamp
+      if (
+        !reducedMotion.matches &&
+        activePointersRef.current.size === 0 &&
+        timestamp >= resumeRotationAtRef.current
+      ) {
+        phiRef.current += elapsed * AUTO_ROTATE_RADIANS_PER_MS
+        globe.update({ phi: phiRef.current })
+      }
+      animationFrame = requestAnimationFrame(animate)
+    }
+    animationFrame = requestAnimationFrame(animate)
 
-          if (routePoints.length === 1) {
-            map.jumpTo({
-              center: [
-                routePoints[0].airport.longitude,
-                routePoints[0].airport.latitude,
-              ],
-              zoom: 2.5,
-            })
-          } else if (routePoints.length > 1) {
-            const longitudes = routePoints.map(
-              ({ airport }) => airport.longitude
-            )
-            const crossesDateLine =
-              Math.max(...longitudes) - Math.min(...longitudes) > 180
-            const bounds = new maplibre.LngLatBounds()
-            routePoints.forEach(({ airport }) => {
-              const longitude =
-                crossesDateLine && airport.longitude < 0
-                  ? airport.longitude + 360
-                  : airport.longitude
-              bounds.extend([longitude, airport.latitude])
-            })
-            map.fitBounds(bounds, {
-              padding: 52,
-              maxZoom: 3.2,
-              duration: 0,
-            })
-          }
-
-          setStatus("ready")
-        })
-
-        map.on("error", () => {
-          if (!cancelled && !map.loaded()) setStatus("error")
-        })
-      } catch {
-        if (!cancelled) setStatus("error")
+    return () => {
+      cancelAnimationFrame(animationFrame)
+      resizeObserver.disconnect()
+      globe.destroy()
+      globeRef.current = null
+      if (
+        cobeWrapper &&
+        cobeWrapper !== canvasMount &&
+        canvas.parentElement === cobeWrapper
+      ) {
+        canvasMount.insertBefore(canvas, cobeWrapper)
+        cobeWrapper.remove()
       }
     }
+  }, [])
 
-    void initializeMap()
-    return () => {
-      cancelled = true
-      mapInstance?.remove()
+  useEffect(() => {
+    if (!globeRef.current) return
+
+    if (routeData.markers.length === 0) {
+      hasCenteredRouteRef.current = false
+    } else if (!hasCenteredRouteRef.current) {
+      const { latitude, longitude } = routeData.markers[0].airport
+      const initialView = getInitialView(latitude, longitude)
+      phiRef.current = initialView.phi
+      thetaRef.current = initialView.theta
+      hasCenteredRouteRef.current = true
     }
-  }, [flights])
+
+    globeRef.current.update({
+      arcs: globeArcs,
+      markers: globeMarkers,
+      phi: phiRef.current,
+      scale: scaleRef.current,
+      theta: thetaRef.current,
+    })
+  }, [globeArcs, globeMarkers, routeData.markers])
+
+  const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    event.currentTarget.setPointerCapture(event.pointerId)
+    activePointersRef.current.set(event.pointerId, {
+      pointerType: event.pointerType,
+      x: event.clientX,
+      y: event.clientY,
+    })
+
+    const pointers = [...activePointersRef.current.values()]
+    if (pointers.length === 1) {
+      dragGestureRef.current = {
+        pointerId: event.pointerId,
+        startPhi: phiRef.current,
+        startTheta: thetaRef.current,
+        startX: event.clientX,
+        startY: event.clientY,
+      }
+    } else {
+      pinchGestureRef.current = {
+        startDistance: getPointerDistance(pointers),
+        startScale: scaleRef.current,
+      }
+    }
+    resumeRotationAtRef.current = Number.POSITIVE_INFINITY
+    setIsDragging(true)
+  }
+
+  const handlePointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (!activePointersRef.current.has(event.pointerId)) return
+    activePointersRef.current.set(event.pointerId, {
+      pointerType: event.pointerType,
+      x: event.clientX,
+      y: event.clientY,
+    })
+
+    const pointers = [...activePointersRef.current.values()]
+    if (pointers.length >= 2) {
+      const distance = getPointerDistance(pointers)
+      const pinch = pinchGestureRef.current
+      if (pinch?.startDistance) {
+        scaleRef.current = clamp(
+          pinch.startScale * (distance / pinch.startDistance),
+          MIN_SCALE,
+          MAX_SCALE
+        )
+        updateView()
+      }
+      return
+    }
+
+    const drag = dragGestureRef.current
+    if (!drag || drag.pointerId !== event.pointerId) return
+    const sensitivity = Math.PI / Math.max(event.currentTarget.clientWidth, 320)
+    phiRef.current = drag.startPhi + (event.clientX - drag.startX) * sensitivity
+    if (event.pointerType !== "touch") {
+      thetaRef.current = clamp(
+        drag.startTheta + (event.clientY - drag.startY) * sensitivity,
+        -1.05,
+        1.05
+      )
+    }
+    updateView()
+  }
+
+  const handlePointerEnd = (event: PointerEvent<HTMLDivElement>) => {
+    activePointersRef.current.delete(event.pointerId)
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId)
+    }
+
+    const [remainingPointer] = activePointersRef.current.entries()
+    if (remainingPointer) {
+      const [pointerId, pointer] = remainingPointer
+      dragGestureRef.current = {
+        pointerId,
+        startPhi: phiRef.current,
+        startTheta: thetaRef.current,
+        startX: pointer.x,
+        startY: pointer.y,
+      }
+      pinchGestureRef.current = null
+      return
+    }
+
+    dragGestureRef.current = null
+    pinchGestureRef.current = null
+    pauseAutoRotation()
+    setIsDragging(false)
+  }
+
+  const handleWheel = (event: WheelEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    scaleRef.current = clamp(
+      scaleRef.current - event.deltaY * 0.0007,
+      MIN_SCALE,
+      MAX_SCALE
+    )
+    pauseAutoRotation()
+    updateView()
+  }
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    const rotationStep = 0.12
+    const scaleStep = 0.06
+    let handled = true
+
+    switch (event.key) {
+      case "ArrowLeft":
+        phiRef.current -= rotationStep
+        break
+      case "ArrowRight":
+        phiRef.current += rotationStep
+        break
+      case "ArrowUp":
+        thetaRef.current = clamp(thetaRef.current - rotationStep, -1.05, 1.05)
+        break
+      case "ArrowDown":
+        thetaRef.current = clamp(thetaRef.current + rotationStep, -1.05, 1.05)
+        break
+      case "+":
+      case "=":
+        scaleRef.current = clamp(
+          scaleRef.current + scaleStep,
+          MIN_SCALE,
+          MAX_SCALE
+        )
+        break
+      case "-":
+      case "_":
+        scaleRef.current = clamp(
+          scaleRef.current - scaleStep,
+          MIN_SCALE,
+          MAX_SCALE
+        )
+        break
+      default:
+        handled = false
+    }
+
+    if (!handled) return
+    event.preventDefault()
+    pauseAutoRotation()
+    updateView()
+  }
+
+  if (availability === "unavailable") return null
 
   return (
-    <Card className="overflow-hidden py-0">
-      {!MAPTILER_KEY ? <MapFallback kind="missing-key" /> : null}
-      {MAPTILER_KEY ? (
-        <div
-          aria-label="Non-interactive map of the planned flight segments"
-          className="relative aspect-[16/9] min-h-64 overflow-hidden bg-muted/30"
-          role="region"
-        >
-          <div className="absolute inset-0" ref={containerRef} />
-          {status === "loading" ? (
-            <div className="pointer-events-none absolute inset-0 grid place-items-center bg-muted/70 backdrop-blur-xs">
-              <div className="text-center">
-                <Globe2
-                  aria-hidden="true"
-                  className="mx-auto size-9 text-primary/60"
-                />
-                <p className="mt-2 text-[11px] text-muted-foreground">
-                  Loading route overview…
-                </p>
-              </div>
-            </div>
-          ) : null}
-          {status === "error" ? (
-            <div className="absolute inset-0 bg-background">
-              <MapFallback kind="error" />
-            </div>
-          ) : null}
+    <Card
+      className="overflow-hidden py-0"
+      hidden={availability !== "available"}
+    >
+      <div
+        aria-label="Interactive globe of the planned flight segments. Drag to rotate and use the wheel or pinch gesture to zoom."
+        className={cn(
+          "page-grid relative aspect-square min-h-64 touch-pan-y overflow-hidden bg-muted/20 outline-none select-none sm:aspect-[16/10] lg:aspect-square 2xl:aspect-[16/10]",
+          isDragging ? "cursor-grabbing" : "cursor-grab"
+        )}
+        onKeyDown={handleKeyDown}
+        onPointerCancel={handlePointerEnd}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerEnd}
+        onWheel={handleWheel}
+        role="region"
+        tabIndex={0}
+      >
+        <div className="absolute inset-0" ref={canvasMountRef}>
+          <canvas
+            aria-hidden="true"
+            className="block size-full"
+            ref={canvasRef}
+          />
+        </div>
+
+        {routeData.markers.map(({ airport, id, sequence }) => (
+          <span
+            aria-hidden="true"
+            className="airport-globe-label"
+            key={id}
+            style={getMarkerStyle(id)}
+            title={`${sequence}. ${airport.iata} · ${airport.name}`}
+          >
+            {airport.iata}
+          </span>
+        ))}
+
+        {routeData.markers.length === 0 ? (
+          <div className="pointer-events-none absolute inset-x-0 bottom-5 text-center text-[11px] text-muted-foreground">
+            Add a flight to plot your route
+          </div>
+        ) : null}
+      </div>
+
+      {routeData.markers.length > 0 ? (
+        <div className="border-t px-3 py-2.5">
+          <div className="overflow-x-auto pb-0.5">
+            <ul
+              aria-label="Airports shown on the globe"
+              className="flex w-max min-w-full gap-1.5"
+            >
+              {routeData.markers.map(({ airport, id }) => (
+                <li
+                  className="flex max-w-56 shrink-0 items-center gap-1.5 border bg-background px-2 py-1 text-[10px]"
+                  key={id}
+                  title={`${airport.iata} · ${airport.name}, ${airport.city}`}
+                >
+                  <span className="font-bold text-primary">{airport.iata}</span>
+                  <span className="truncate text-muted-foreground">
+                    {airport.name}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       ) : null}
+
       <CardContent className="flex items-start justify-between gap-4 border-t py-3 text-[11px] text-muted-foreground">
-        <span>
-          Flight paths only · open jaws intentionally omitted · interaction
-          disabled
-        </span>
+        <span>Interactive globe · flight paths only · open jaws omitted</span>
         <span className="shrink-0 tabular-nums">
           {flights.length} {flights.length === 1 ? "flight" : "flights"}
         </span>

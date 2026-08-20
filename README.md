@@ -13,7 +13,8 @@ pnpm dev
 Run the verification suite with `pnpm build`, `pnpm test`, and `pnpm lint`.
 
 The planner is a pure front-end application. Route data is checked into the
-repository so normal installs and builds do not require a route-data API.
+repository, and the Cobe route globe is bundled with the app, so normal use
+does not require a route-data or map API.
 
 ## Route data
 
@@ -32,16 +33,13 @@ The rule engine implements itinerary-derived checks from sections 4 and 8 of
 It deliberately does not determine pricing, inventory, booking-class
 availability, ticketing agreements, or whether a carrier will issue a ticket.
 
-## Optional route map
+## Route globe
 
-Copy `.env.example` to `.env.local` and set `VITE_MAPTILER_KEY` to enable the
-read-only MapLibre overview. MapTiler is the app's only runtime network
-dependency; restrict the public browser key to the domains that serve the app.
-All planner and validation features continue to work when the map is not
-configured or cannot load.
+The route overview uses [Cobe](https://github.com/shuding/cobe) to render an
+interactive WebGL globe with airport markers and arcs for flight segments.
+Open jaws are intentionally omitted. The globe is hidden when WebGL is not
+available and does not require an API key or runtime network request.
 
 ## Follow-up ideas
 
 - Add full operation history with multi-step undo and redo.
-- Evaluate [cobe](https://github.com/shuding/cobe) as an optional 3D globe
-  preview without replacing the simple default map.

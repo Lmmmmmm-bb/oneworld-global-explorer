@@ -88,7 +88,7 @@ export const PlannerPage: FC = () => {
         <SummaryStrip />
 
         {isDesktop ? (
-          <div className="mt-5 grid grid-cols-[minmax(0,3fr)_minmax(340px,2fr)] gap-5">
+          <div className="mt-5 grid items-start grid-cols-[minmax(0,3fr)_minmax(340px,2fr)] gap-5">
             <ItineraryPanel
               onAddFlight={openAddFlight}
               onEditFlight={openEditFlight}

@@ -35,8 +35,8 @@ export const PlanSettings: FC = () => {
   const compatibleBands = getCompatibleBands(itinerary.cabinClass)
 
   return (
-    <div className="grid gap-3 border-b bg-muted/20 p-4 sm:grid-cols-2">
-      <div className="space-y-2">
+    <div className="grid gap-2.5 border-b bg-muted/20 p-3 sm:grid-cols-2">
+      <div className="space-y-1.5">
         <Label className="flex items-center gap-1.5" htmlFor="cabin-class">
           <Plane aria-hidden="true" className="size-3.5 text-primary" />
           Cabin
@@ -57,7 +57,7 @@ export const PlanSettings: FC = () => {
           </SelectContent>
         </Select>
       </div>
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <Label className="flex items-center gap-1.5" htmlFor="mileage-band">
           <Gauge aria-hidden="true" className="size-3.5 text-primary" />
           Mileage band

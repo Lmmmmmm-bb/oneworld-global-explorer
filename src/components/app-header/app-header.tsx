@@ -4,11 +4,14 @@ import { Download, FilePlus2, FileUp, Globe2, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { APP_CONFIG } from "@/config"
 
+import { HistoryControls, type HistoryControlsProps } from "./history-controls"
+
 type AppHeaderProps = {
   onAddFlight: () => void
   onExport: () => void
   onImport: () => void
   onNew: () => void
+  history: Omit<HistoryControlsProps, "variant">
 }
 
 export const AppHeader: FC<AppHeaderProps> = ({
@@ -16,6 +19,7 @@ export const AppHeader: FC<AppHeaderProps> = ({
   onExport,
   onImport,
   onNew,
+  history,
 }) => (
   <header className="border-b bg-background/95 backdrop-blur">
     <div className="mx-auto flex h-16 max-w-[1600px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
@@ -33,6 +37,13 @@ export const AppHeader: FC<AppHeaderProps> = ({
         </div>
       </div>
       <div className="flex items-center gap-1.5">
+        <div className="hidden sm:block">
+          <HistoryControls {...history} variant="desktop" />
+        </div>
+        <div
+          aria-hidden="true"
+          className="mx-1 hidden h-6 w-px bg-border sm:block"
+        />
         <Button
           aria-label="Start a new itinerary"
           className="size-10 sm:w-auto"
@@ -65,6 +76,9 @@ export const AppHeader: FC<AppHeaderProps> = ({
           Add flight
         </Button>
       </div>
+    </div>
+    <div className="border-t px-4 py-1.5 sm:hidden">
+      <HistoryControls {...history} variant="mobile" />
     </div>
   </header>
 )

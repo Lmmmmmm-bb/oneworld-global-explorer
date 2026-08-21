@@ -78,7 +78,8 @@ export const ImportItineraryDialog = forwardRef<
             <DialogTitle>Import itinerary</DialogTitle>
             <DialogDescription>
               Review {fileName || "the selected file"} before replacing the
-              current locally saved plan.
+              current locally saved plan. The import can be undone before the
+              page is reloaded.
             </DialogDescription>
           </DialogHeader>
 

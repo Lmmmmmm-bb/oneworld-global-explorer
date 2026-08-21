@@ -36,7 +36,8 @@ export const NewItineraryDialog: FC<NewItineraryDialogProps> = ({
         <AlertDialogTitle>Start a new itinerary?</AlertDialogTitle>
         <AlertDialogDescription>
           This replaces the single plan saved in this browser. Export the
-          current JSON first if you may want it later.
+          current JSON for a separate backup, or undo this change before
+          reloading the page.
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter className="sm:flex-wrap">

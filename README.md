@@ -18,6 +18,7 @@ endorsed by oneworld or its member airlines.
   bands.
 - View flight segments and airports on an interactive globe.
 - Import and export a plan as JSON for backup or sharing.
+- Undo and redo committed itinerary changes while you work.
 
 ## Plan an itinerary
 
@@ -34,6 +35,19 @@ endorsed by oneworld or its member airlines.
    later to continue planning.
 
 Your current itinerary is saved automatically in this browser.
+
+## Undo and redo changes
+
+Use the history controls in the header, or press `Ctrl+Z` / `Cmd+Z` to undo
+and `Ctrl+Shift+Z` / `Cmd+Shift+Z` to redo. `Ctrl+Y` also redoes a change on
+Windows and Linux.
+
+Adding, editing, or deleting a flight and changing plan settings each create a
+history step. Importing or starting a new itinerary can also be undone as one
+step. Draft changes inside an editor are added to history only when saved.
+
+Up to 100 changes are kept for the current browser tab. Reloading the page
+keeps the automatically saved itinerary but clears its undo and redo history.
 
 ## Understand the validation status
 

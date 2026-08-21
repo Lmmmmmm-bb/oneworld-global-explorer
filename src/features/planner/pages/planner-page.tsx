@@ -23,6 +23,7 @@ import { PlannerAside } from "../components/planner-aside"
 import { RouteMap } from "../components/route-map"
 import { SummaryStrip } from "../components/summary-strip"
 import { ValidationPanel } from "../components/validation-panel"
+import { formatHistoryChange, useHistoryShortcuts } from "../history"
 
 type MobileTab = "itinerary" | "map" | "validation"
 
@@ -32,6 +33,11 @@ export const PlannerPage: FC = () => {
   const updateFlight = useItineraryStore((state) => state.updateFlight)
   const replaceItinerary = useItineraryStore((state) => state.replaceItinerary)
   const resetItinerary = useItineraryStore((state) => state.resetItinerary)
+  const past = useItineraryStore((state) => state.past)
+  const future = useItineraryStore((state) => state.future)
+  const undo = useItineraryStore((state) => state.undo)
+  const redo = useItineraryStore((state) => state.redo)
+  const lastHistoryEvent = useItineraryStore((state) => state.lastHistoryEvent)
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingFlight, setEditingFlight] = useState<FlightSegment | null>(null)
   const [newDialogOpen, setNewDialogOpen] = useState(false)
@@ -39,6 +45,10 @@ export const PlannerPage: FC = () => {
   const importDialogRef = useRef<ImportItineraryDialogHandle>(null)
   const lastArrival = itinerary.flights.at(-1)?.to ?? ""
   const isDesktop = useMediaQuery("(min-width: 1024px)")
+  const undoChange = past.at(-1)?.change
+  const redoChange = future.at(-1)?.change
+
+  useHistoryShortcuts()
 
   const openAddFlight = () => {
     setEditingFlight(null)
@@ -66,11 +76,24 @@ export const PlannerPage: FC = () => {
   return (
     <div className="min-h-svh bg-[#f7f8f6] pb-20 lg:pb-0">
       <AppHeader
+        history={{
+          canUndo: Boolean(undoChange),
+          canRedo: Boolean(redoChange),
+          undoLabel: undoChange ? formatHistoryChange(undoChange) : undefined,
+          redoLabel: redoChange ? formatHistoryChange(redoChange) : undefined,
+          onUndo: undo,
+          onRedo: redo,
+        }}
         onAddFlight={openAddFlight}
         onExport={exportCurrent}
         onImport={() => importDialogRef.current?.chooseFile()}
         onNew={() => setNewDialogOpen(true)}
       />
+      <p aria-atomic="true" aria-live="polite" className="sr-only">
+        {lastHistoryEvent
+          ? `${lastHistoryEvent.direction === "undo" ? "Undid" : "Redid"}: ${formatHistoryChange(lastHistoryEvent.change)}`
+          : ""}
+      </p>
       <main className="mx-auto max-w-[1600px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
         <div className="mb-5">
           <p className="text-[10px] font-medium tracking-[0.18em] text-primary uppercase">

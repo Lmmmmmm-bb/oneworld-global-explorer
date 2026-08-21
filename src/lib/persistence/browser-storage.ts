@@ -6,5 +6,5 @@ const inMemoryFallback: StateStorage = {
   removeItem: () => undefined,
 }
 
-export const getLocalStorage = (): StateStorage =>
+export const getBrowserStorage = (): StateStorage =>
   typeof localStorage === "undefined" ? inMemoryFallback : localStorage

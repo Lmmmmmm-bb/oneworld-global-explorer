@@ -1,1 +1,2 @@
-export { useItineraryStore } from "./itinerary-store"
+export { useItineraryStore } from "./itinerary"
+export type { ItineraryHistoryEvent } from "./itinerary"

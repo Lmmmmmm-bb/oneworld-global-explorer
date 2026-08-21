@@ -4,6 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
+    "assets:airlines": "node scripts/airline-logos/update.mjs",
     "dev": "vite",
     "data:update": "node scripts/route-data/update.mjs",
     "build": "tsc -b && vite build",
@@ -38,6 +39,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6",
+    "airlogos": "1.0.5",
     "eslint": "^10",
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",

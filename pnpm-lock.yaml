@@ -72,6 +72,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^6
         version: 6.0.5(vite@8.2.1(@types/node@24.13.3)(jiti@2.7.0))
+      airlogos:
+        specifier: 1.0.5
+        version: 1.0.5
       eslint:
         specifier: ^10
         version: 10.8.1(jiti@2.7.0)
@@ -901,6 +904,9 @@ packages:
     resolution: {integrity: sha512-lGq+9yr1/GuAWaVYIHRjvvySG5/4VfKIvC8EWxStPdcDh/Ka7FG3twP6v4d5BkravUilhIAsG4Qj83t02LWUPQ==}
     engines: {node: '>=0.4.0'}
     hasBin: true
+
+  airlogos@1.0.5:
+    resolution: {integrity: sha512-ISZVZvQc6ap6Rb/LG8D4oXVJyslx9Fj7HSjEBek3ulXGZSNi98d/s51eLeaDbO4Srl708O6SQk2ltKIPahBT3w==}
 
   ajv-formats@2.1.1:
     resolution: {integrity: sha512-Wx0Kx52hxE7C18hkMEggYlEifqWZtYaRgouJor+WMdPnQyEK13vgEWyVNup7SoeeoLMsr4kf5h6dOW11I15MUA==}
@@ -3459,6 +3465,8 @@ snapshots:
       acorn: 8.18.0
 
   acorn@8.18.0: {}
+
+  airlogos@1.0.5: {}
 
   ajv-formats@2.1.1(ajv@8.20.0):
     optionalDependencies:

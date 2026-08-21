@@ -71,14 +71,14 @@ export const ValidationPanel: FC = () => {
     : 100
 
   return (
-    <Card className="gap-0 py-0">
-      <CardHeader className="border-b py-4">
+    <Card className="gap-0 py-0 [--card-spacing:--spacing(3)]">
+      <CardHeader className="border-b p-3">
         <div className="flex items-center justify-between gap-3">
           <CardTitle className="text-sm">Route validation</CardTitle>
           <StatusPill status={validation.status} />
         </div>
       </CardHeader>
-      <CardContent className="space-y-5 py-4">
+      <CardContent className="space-y-5 p-3">
         <div className="space-y-2">
           <div className="flex items-end justify-between gap-3">
             <div>
@@ -146,7 +146,7 @@ export const ValidationPanel: FC = () => {
           </ul>
         ) : null}
       </CardContent>
-      <p className="border-t px-4 py-4 text-[11px] leading-5 text-muted-foreground">
+      <p className="border-t p-3 text-[11px] leading-5 text-muted-foreground">
         Basic planning checks only. This does not confirm pricing, inventory,
         booking class, ticketing agreements, or ticket issuance. Read the{" "}
         <a

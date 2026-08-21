@@ -1,6 +1,7 @@
 import { useMemo, useState, type FC, type FormEvent } from "react"
 import { ArrowRight, Info, PlaneTakeoff } from "lucide-react"
 
+import { AirlineLogo } from "@/components/airline-logo"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import {
@@ -229,6 +230,7 @@ const FlightEditorContent: FC<FlightEditorContentProps> = ({
                 <SelectContent>
                   {marketingCarriers.map((carrier) => (
                     <SelectItem key={carrier.code} value={carrier.code}>
+                      <AirlineLogo code={carrier.code} />
                       {carrier.code} · {carrier.name}
                     </SelectItem>
                   ))}
@@ -281,6 +283,9 @@ const FlightEditorContent: FC<FlightEditorContentProps> = ({
                   <SelectContent>
                     {operatingCarriers.map((carrier) => (
                       <SelectItem key={carrier.id} value={carrier.id}>
+                        {!carrier.id.includes(":") ? (
+                          <AirlineLogo code={carrier.id} />
+                        ) : null}
                         {carrier.id.includes(":") ? "Affiliate" : carrier.id} ·{" "}
                         {carrier.name}
                       </SelectItem>

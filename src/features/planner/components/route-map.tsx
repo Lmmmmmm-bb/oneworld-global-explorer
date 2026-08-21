@@ -550,7 +550,7 @@ export const RouteMap: FC = () => {
       </div>
 
       {routeData.markers.length > 0 ? (
-        <div className="border-t px-3 py-2.5">
+        <div className="border-t p-3">
           <ul
             aria-label="Airports shown on the globe"
             className="flex flex-wrap gap-1.5"
@@ -577,7 +577,7 @@ export const RouteMap: FC = () => {
         </div>
       ) : null}
 
-      <CardContent className="flex items-start justify-between gap-4 border-t py-3 text-[11px] text-muted-foreground">
+      <CardContent className="flex items-start justify-between gap-4 border-t p-3 text-[11px] text-muted-foreground">
         <span>Interactive globe · flight paths only · open jaws omitted</span>
         <span className="shrink-0 tabular-nums">
           {flights.length} {flights.length === 1 ? "flight" : "flights"}

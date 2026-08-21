@@ -48,7 +48,7 @@ export const ItineraryPanel: FC<ItineraryPanelProps> = ({
   return (
     <Card className="gap-0 overflow-hidden py-0">
       <PlanSettings />
-      <div className="flex items-center justify-between gap-4 border-b px-3 py-2.5">
+      <div className="flex items-center justify-between gap-4 border-b p-3">
         <div>
           <h2 className="text-sm font-semibold">Flight sequence</h2>
           <p className="text-[11px] text-muted-foreground">
@@ -60,7 +60,7 @@ export const ItineraryPanel: FC<ItineraryPanelProps> = ({
           Add flight
         </Button>
       </div>
-      <div className="px-3 py-2.5">
+      <div className="p-3">
         <div className="divide-y border">
           {itinerary.flights.map((flight, index) => {
             const openJaw = openJawsByPreviousFlight.get(flight.id)

@@ -1,6 +1,7 @@
 import type { FC } from "react"
-import { ArrowRight, Pencil, Plane, Trash2 } from "lucide-react"
+import { ArrowRight, Pencil, Trash2 } from "lucide-react"
 
+import { AirlineLogo } from "@/components/airline-logo"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { FlightSegment } from "@/features/itinerary"
@@ -37,7 +38,7 @@ export const FlightCard: FC<FlightCardProps> = ({
         <div className="grid size-6 shrink-0 place-items-center bg-primary/10 text-[10px] font-semibold text-primary tabular-nums">
           {index + 1}
         </div>
-        <div className="grid min-w-0 gap-x-4 gap-y-0.5 sm:grid-cols-[minmax(11rem,1.2fr)_minmax(9rem,1fr)_auto] sm:items-center">
+        <div className="grid min-w-0 gap-x-4 gap-y-0.5 sm:grid-cols-[minmax(11rem,1.2fr)_minmax(9rem,1fr)_9rem] sm:items-center">
           <div className="flex min-w-0 items-center gap-2">
             <div className="flex shrink-0 items-center gap-1.5 text-sm font-semibold tracking-tight">
               <span>{flight.from}</span>
@@ -49,10 +50,7 @@ export const FlightCard: FC<FlightCardProps> = ({
             </span>
           </div>
           <div className="flex min-w-0 items-center gap-1.5 text-[11px]">
-            <Plane
-              aria-hidden="true"
-              className="size-3 shrink-0 text-primary"
-            />
+            <AirlineLogo code={flight.marketingCarrier} />
             <span className="truncate">
               <span className="font-medium">{flight.marketingCarrier}</span>
               <span className="text-muted-foreground">

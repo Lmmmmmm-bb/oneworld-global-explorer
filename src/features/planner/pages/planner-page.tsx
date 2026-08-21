@@ -12,7 +12,7 @@ import {
 import { useMediaQuery } from "@/hooks"
 import { useItineraryStore } from "@/stores"
 
-import { FlightEditorSheet } from "../components/flight-editor-sheet"
+import { FlightEditorDialog } from "../components/flight-editor-dialog"
 import {
   ImportItineraryDialog,
   type ImportItineraryDialogHandle,
@@ -88,7 +88,7 @@ export const PlannerPage: FC = () => {
         <SummaryStrip />
 
         {isDesktop ? (
-          <div className="mt-5 grid items-start grid-cols-[minmax(0,3fr)_minmax(340px,2fr)] gap-5">
+          <div className="mt-5 grid grid-cols-[minmax(0,3fr)_minmax(340px,2fr)] items-start gap-5">
             <ItineraryPanel
               onAddFlight={openAddFlight}
               onEditFlight={openEditFlight}
@@ -151,8 +151,8 @@ export const PlannerPage: FC = () => {
         </Button>
       ) : null}
 
-      <FlightEditorSheet
-        defaultOrigin={editingFlight ? "" : lastArrival}
+      <FlightEditorDialog
+        defaultOrigin={editingFlight?.from ?? lastArrival}
         flight={editingFlight}
         onOpenChange={setEditorOpen}
         onSave={saveFlight}

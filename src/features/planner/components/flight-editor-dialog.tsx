@@ -12,13 +12,13 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetFooter,
-  SheetHeader,
-  SheetTitle,
-} from "@/components/ui/sheet"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { Switch } from "@/components/ui/switch"
 import { createFlightSegment, type FlightSegment } from "@/features/itinerary"
 import {
@@ -32,9 +32,9 @@ import {
   getOperatingCarrierOptions,
 } from "@/features/rules"
 
-import { AirportPicker } from "./airport-picker"
+import { AirportCombobox } from "./airport-combobox"
 
-interface FlightEditorSheetProps {
+interface FlightEditorDialogProps {
   open: boolean
   flight: FlightSegment | null
   defaultOrigin: string
@@ -42,10 +42,16 @@ interface FlightEditorSheetProps {
   onSave: (flight: FlightSegment) => void
 }
 
-type FlightEditorContentProps = Omit<FlightEditorSheetProps, "open">
-type ActiveAirportPicker = "from" | "to" | null
+type FlightDialogContentProps = Omit<FlightEditorDialogProps, "open">
 
-const FlightEditorContent: FC<FlightEditorContentProps> = ({
+const carrierCodesByOrigin = new Map(
+  [...routesByOrigin].map(([origin, routes]) => [
+    origin,
+    [...new Set(routes.flatMap((route) => route.carrierCodes))],
+  ])
+)
+
+const FlightDialogContent: FC<FlightDialogContentProps> = ({
   flight,
   defaultOrigin,
   onOpenChange,
@@ -56,29 +62,16 @@ const FlightEditorContent: FC<FlightEditorContentProps> = ({
       ? { ...flight }
       : createFlightSegment({ from: defaultOrigin, arrivalType: "stopover" })
   )
-  const [activeAirportPicker, setActiveAirportPicker] =
-    useState<ActiveAirportPicker>(null)
-
-  const handleAirportPickerOpenChange = (
-    picker: Exclude<ActiveAirportPicker, null>,
-    open: boolean
-  ) => {
-    setActiveAirportPicker((current) => {
-      if (open) return picker
-      return current === picker ? null : current
-    })
-  }
-
   const destinationAirports = useMemo(
     () => (draft.from ? getDestinationAirports(draft.from) : []),
     [draft.from]
   )
-  const carrierCounts = useMemo(
+  const carrierCodesByDestination = useMemo(
     () =>
       new Map(
         (routesByOrigin.get(draft.from) ?? []).map((route) => [
           route.to,
-          route.carrierCodes.length,
+          route.carrierCodes,
         ])
       ),
     [draft.from]
@@ -152,23 +145,26 @@ const FlightEditorContent: FC<FlightEditorContentProps> = ({
   }
 
   return (
-    <Sheet open onOpenChange={onOpenChange}>
-      <SheetContent className="w-full! max-w-none! sm:max-w-xl!">
-        <form className="flex min-h-0 flex-1 flex-col" onSubmit={handleSubmit}>
-          <SheetHeader className="border-b">
-            <div className="mb-2 grid size-9 place-items-center bg-primary text-primary-foreground">
+    <Dialog open onOpenChange={onOpenChange}>
+      <DialogContent className="flex max-h-[min(90svh,760px)] w-[calc(100%-2rem)] max-w-none! flex-col gap-0 overflow-hidden p-0 sm:max-w-xl!">
+        <form
+          className="flex min-h-0 flex-1 flex-col overflow-hidden"
+          onSubmit={handleSubmit}
+        >
+          <DialogHeader className="border-b p-5 pr-12">
+            <div className="mb-1 grid size-8 place-items-center bg-primary text-primary-foreground">
               <PlaneTakeoff aria-hidden="true" className="size-4" />
             </div>
-            <SheetTitle className="text-base">
+            <DialogTitle className="text-base">
               {flight ? "Edit flight" : "Add flight"}
-            </SheetTitle>
-            <SheetDescription>
+            </DialogTitle>
+            <DialogDescription>
               Destinations are limited to eligible direct routes from the
               selected departure airport.
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
-          <div className="min-h-0 flex-1 space-y-6 overflow-y-auto p-6">
+          <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
             {defaultOrigin && draft.from !== defaultOrigin ? (
               <div className="flex gap-2 border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
                 <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
@@ -179,30 +175,23 @@ const FlightEditorContent: FC<FlightEditorContentProps> = ({
             ) : null}
 
             <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
-              <AirportPicker
+              <AirportCombobox
                 candidates={airports}
+                carrierCodes={carrierCodesByOrigin}
                 label="From"
                 onChange={(airport) => setOrigin(airport.iata)}
-                onOpenChange={(open) =>
-                  handleAirportPickerOpenChange("from", open)
-                }
-                open={activeAirportPicker === "from"}
                 value={draft.from}
               />
               <ArrowRight
                 aria-hidden="true"
                 className="mb-3 hidden size-4 text-muted-foreground sm:block"
               />
-              <AirportPicker
+              <AirportCombobox
                 candidates={destinationAirports}
-                carrierCounts={carrierCounts}
+                carrierCodes={carrierCodesByDestination}
                 disabled={!draft.from}
                 label="To"
                 onChange={(airport) => setDestination(airport.iata)}
-                onOpenChange={(open) =>
-                  handleAirportPickerOpenChange("to", open)
-                }
-                open={activeAirportPicker === "to"}
                 placeholder={
                   draft.from ? "Choose a direct route" : "Choose From first"
                 }
@@ -225,7 +214,24 @@ const FlightEditorContent: FC<FlightEditorContentProps> = ({
                 value={draft.marketingCarrier || null}
               >
                 <SelectTrigger className="h-11 w-full" id="marketing-carrier">
-                  <SelectValue placeholder="Choose a carrier" />
+                  <SelectValue>
+                    {(value: string | null) => {
+                      const carrier = marketingCarriers.find(
+                        ({ code }) => code === value
+                      )
+                      return carrier ? (
+                        <span className="flex min-w-0 items-center gap-2">
+                          <AirlineLogo code={carrier.code} />
+                          <span className="font-medium">{carrier.code}</span>
+                          <span className="truncate text-muted-foreground">
+                            · {carrier.name}
+                          </span>
+                        </span>
+                      ) : (
+                        "Choose a carrier"
+                      )
+                    }}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {marketingCarriers.map((carrier) => (
@@ -278,7 +284,37 @@ const FlightEditorContent: FC<FlightEditorContentProps> = ({
                   value={draft.operatingCarrier || null}
                 >
                   <SelectTrigger className="h-11 w-full" id="operating-carrier">
-                    <SelectValue placeholder="Choose an operator" />
+                    <SelectValue>
+                      {(value: string | null) => {
+                        const carrier = operatingCarriers.find(
+                          ({ id }) => id === value
+                        )
+                        return carrier ? (
+                          <span className="flex min-w-0 items-center gap-2">
+                            {!carrier.id.includes(":") ? (
+                              <AirlineLogo code={carrier.id} />
+                            ) : (
+                              <span className="grid size-5 shrink-0 place-items-center bg-primary/10 text-primary">
+                                <PlaneTakeoff
+                                  aria-hidden="true"
+                                  className="size-3"
+                                />
+                              </span>
+                            )}
+                            <span className="font-medium">
+                              {carrier.id.includes(":")
+                                ? "Affiliate"
+                                : carrier.id}
+                            </span>
+                            <span className="truncate text-muted-foreground">
+                              · {carrier.name}
+                            </span>
+                          </span>
+                        ) : (
+                          "Choose an operator"
+                        )
+                      }}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {operatingCarriers.map((carrier) => (
@@ -322,7 +358,7 @@ const FlightEditorContent: FC<FlightEditorContentProps> = ({
             </div>
           </div>
 
-          <SheetFooter className="border-t bg-background">
+          <DialogFooter className="border-t bg-background p-4">
             <Button disabled={!isReady} size="lg" type="submit">
               {flight ? "Save changes" : "Add flight"}
             </Button>
@@ -334,19 +370,19 @@ const FlightEditorContent: FC<FlightEditorContentProps> = ({
             >
               Cancel
             </Button>
-          </SheetFooter>
+          </DialogFooter>
         </form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   )
 }
 
-export const FlightEditorSheet: FC<FlightEditorSheetProps> = ({
+export const FlightEditorDialog: FC<FlightEditorDialogProps> = ({
   open,
   ...props
 }) =>
   open ? (
-    <FlightEditorContent
+    <FlightDialogContent
       key={props.flight?.id ?? `new:${props.defaultOrigin}`}
       {...props}
     />

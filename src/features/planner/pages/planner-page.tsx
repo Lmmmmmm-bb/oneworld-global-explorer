@@ -1,33 +1,64 @@
-import { useRef, useState, type FC } from "react"
+import { lazy, Suspense, useEffect, useRef, useState, type FC } from "react"
 import { ListOrdered, Map, Plus, ShieldCheck } from "lucide-react"
 
 import { AppHeader } from "@/components/app-header"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import {
-  downloadItineraryJson,
-  type FlightSegment,
-  type Itinerary,
-} from "@/features/itinerary"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import type { FlightSegment, Itinerary } from "@/features/itinerary"
 import { useMediaQuery } from "@/hooks"
 import { useItineraryStore } from "@/stores"
 
-import { FlightEditorDialog } from "../components/flight-editor-dialog"
-import {
-  ImportItineraryDialog,
-  type ImportItineraryDialogHandle,
-} from "../components/import-itinerary-dialog"
 import { ItineraryPanel } from "../components/itinerary-panel"
-import { NewItineraryDialog } from "../components/new-itinerary-dialog"
 import { PlannerAside } from "../components/planner-aside"
-import { RouteMap } from "../components/route-map"
 import { SummaryStrip } from "../components/summary-strip"
 import { ValidationPanel } from "../components/validation-panel"
 import { formatHistoryChange, useHistoryShortcuts } from "../history"
 
 type MobileTab = "itinerary" | "map" | "validation"
 
-export const PlannerPage: FC = () => {
+const loadFlightEditorDialog = () =>
+  import("../components/flight-editor-dialog")
+const loadImportItineraryDialog = () =>
+  import("../components/import-itinerary-dialog")
+const loadNewItineraryDialog = () =>
+  import("../components/new-itinerary-dialog")
+const loadRouteMap = () => import("../components/route-map")
+
+const FlightEditorDialog = lazy(() =>
+  loadFlightEditorDialog().then((module) => ({
+    default: module.FlightEditorDialog,
+  }))
+)
+const ImportItineraryDialog = lazy(() =>
+  loadImportItineraryDialog().then((module) => ({
+    default: module.ImportItineraryDialog,
+  }))
+)
+const NewItineraryDialog = lazy(() =>
+  loadNewItineraryDialog().then((module) => ({
+    default: module.NewItineraryDialog,
+  }))
+)
+const RouteMap = lazy(() =>
+  loadRouteMap().then((module) => ({ default: module.RouteMap }))
+)
+
+const MapFallback: FC = () => (
+  <Card className="overflow-hidden">
+    <CardHeader className="pb-3">
+      <CardTitle className="text-sm">Route map</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <div className="grid min-h-64 place-items-center bg-muted/30 text-xs text-muted-foreground">
+        Preparing the interactive map…
+      </div>
+    </CardContent>
+  </Card>
+)
+
+const PlannerPageContent: FC = () => {
   const itinerary = useItineraryStore((state) => state.itinerary)
   const addFlight = useItineraryStore((state) => state.addFlight)
   const updateFlight = useItineraryStore((state) => state.updateFlight)
@@ -42,7 +73,9 @@ export const PlannerPage: FC = () => {
   const [editingFlight, setEditingFlight] = useState<FlightSegment | null>(null)
   const [newDialogOpen, setNewDialogOpen] = useState(false)
   const [mobileTab, setMobileTab] = useState<MobileTab>("itinerary")
-  const importDialogRef = useRef<ImportItineraryDialogHandle>(null)
+  const [importFile, setImportFile] = useState<File | null>(null)
+  const [desktopMapReady, setDesktopMapReady] = useState(false)
+  const importInputRef = useRef<HTMLInputElement>(null)
   const lastArrival = itinerary.flights.at(-1)?.to ?? ""
   const isDesktop = useMediaQuery("(min-width: 1024px)")
   const undoChange = past.at(-1)?.change
@@ -50,12 +83,25 @@ export const PlannerPage: FC = () => {
 
   useHistoryShortcuts()
 
+  useEffect(() => {
+    if (!isDesktop) return
+
+    const timeout = window.setTimeout(() => {
+      setDesktopMapReady(true)
+      void loadRouteMap()
+    }, 150)
+
+    return () => window.clearTimeout(timeout)
+  }, [isDesktop])
+
   const openAddFlight = () => {
+    void loadFlightEditorDialog()
     setEditingFlight(null)
     setEditorOpen(true)
   }
 
   const openEditFlight = (flight: FlightSegment) => {
+    void loadFlightEditorDialog()
     setEditingFlight(flight)
     setEditorOpen(true)
   }
@@ -65,7 +111,11 @@ export const PlannerPage: FC = () => {
     else addFlight(flight)
   }
 
-  const exportCurrent = () => downloadItineraryJson(itinerary)
+  const exportCurrent = () => {
+    void import("@/features/itinerary/serialization").then(
+      ({ downloadItineraryJson }) => downloadItineraryJson(itinerary)
+    )
+  }
 
   const handleImport = (imported: Itinerary) => {
     replaceItinerary(imported)
@@ -75,6 +125,17 @@ export const PlannerPage: FC = () => {
 
   return (
     <div className="min-h-svh bg-[#f7f8f6] pb-20 lg:pb-0">
+      <input
+        accept="application/json,.json"
+        hidden
+        onChange={(event) => {
+          const file = event.target.files?.[0]
+          event.target.value = ""
+          if (file) setImportFile(file)
+        }}
+        ref={importInputRef}
+        type="file"
+      />
       <AppHeader
         history={{
           canUndo: Boolean(undoChange),
@@ -86,8 +147,14 @@ export const PlannerPage: FC = () => {
         }}
         onAddFlight={openAddFlight}
         onExport={exportCurrent}
-        onImport={() => importDialogRef.current?.chooseFile()}
-        onNew={() => setNewDialogOpen(true)}
+        onImport={() => {
+          void loadImportItineraryDialog()
+          importInputRef.current?.click()
+        }}
+        onNew={() => {
+          void loadNewItineraryDialog()
+          setNewDialogOpen(true)
+        }}
       />
       <p aria-atomic="true" aria-live="polite" className="sr-only">
         {lastHistoryEvent
@@ -116,7 +183,17 @@ export const PlannerPage: FC = () => {
               onAddFlight={openAddFlight}
               onEditFlight={openEditFlight}
             />
-            <PlannerAside />
+            <PlannerAside
+              routeMap={
+                desktopMapReady ? (
+                  <Suspense fallback={<MapFallback />}>
+                    <RouteMap />
+                  </Suspense>
+                ) : (
+                  <MapFallback />
+                )
+              }
+            />
           </div>
         ) : (
           <Tabs
@@ -148,7 +225,11 @@ export const PlannerPage: FC = () => {
               />
             </TabsContent>
             <TabsContent className="mt-4" value="map">
-              {mobileTab === "map" ? <RouteMap /> : null}
+              {mobileTab === "map" ? (
+                <Suspense fallback={<MapFallback />}>
+                  <RouteMap />
+                </Suspense>
+              ) : null}
             </TabsContent>
             <TabsContent className="mt-4" value="validation">
               <ValidationPanel />
@@ -174,24 +255,47 @@ export const PlannerPage: FC = () => {
         </Button>
       ) : null}
 
-      <FlightEditorDialog
-        defaultOrigin={editingFlight?.from ?? lastArrival}
-        flight={editingFlight}
-        onOpenChange={setEditorOpen}
-        onSave={saveFlight}
-        open={editorOpen}
-      />
-      <ImportItineraryDialog onImport={handleImport} ref={importDialogRef} />
-      <NewItineraryDialog
-        onConfirm={() => {
-          resetItinerary()
-          setEditingFlight(null)
-          setMobileTab("itinerary")
-        }}
-        onExport={exportCurrent}
-        onOpenChange={setNewDialogOpen}
-        open={newDialogOpen}
-      />
+      {editorOpen ? (
+        <Suspense fallback={null}>
+          <FlightEditorDialog
+            defaultOrigin={editingFlight?.from ?? lastArrival}
+            flight={editingFlight}
+            onOpenChange={setEditorOpen}
+            onSave={saveFlight}
+            open
+          />
+        </Suspense>
+      ) : null}
+      {importFile ? (
+        <Suspense fallback={null}>
+          <ImportItineraryDialog
+            file={importFile}
+            key={`${importFile.name}-${importFile.lastModified}`}
+            onClose={() => setImportFile(null)}
+            onImport={handleImport}
+          />
+        </Suspense>
+      ) : null}
+      {newDialogOpen ? (
+        <Suspense fallback={null}>
+          <NewItineraryDialog
+            onConfirm={() => {
+              resetItinerary()
+              setEditingFlight(null)
+              setMobileTab("itinerary")
+            }}
+            onExport={exportCurrent}
+            onOpenChange={setNewDialogOpen}
+            open
+          />
+        </Suspense>
+      ) : null}
     </div>
   )
 }
+
+export const PlannerPage: FC = () => (
+  <TooltipProvider>
+    <PlannerPageContent />
+  </TooltipProvider>
+)

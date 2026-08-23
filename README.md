@@ -83,6 +83,25 @@ missing route may reflect incomplete or outdated source data; its absence does
 not prove that a flight does not operate. Schedules and airline participation
 can change, so verify every flight with the airline before booking.
 
+## Development and bundle budgets
+
+Use Node.js 20.19 or newer with the pinned pnpm version. The production build
+also checks gzip budgets for the application shell, planner-ready JavaScript,
+styles, and route snapshot:
+
+```sh
+pnpm install
+pnpm test
+pnpm lint
+pnpm build
+```
+
+`pnpm data:update` refreshes the checked-in compact route snapshot from the
+configured upstream revision. The snapshot is emitted as a hashed static asset
+and decoded in the browser; dialogs, JSON validation, and the interactive globe
+remain in separate on-demand chunks. Run `pnpm build:report` after a production
+build to print the current gzip measurements without enforcing them again.
+
 ## Important limitations
 
 This planner does not determine:

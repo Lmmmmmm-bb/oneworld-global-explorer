@@ -1,18 +1,26 @@
-import { describe, expect, it } from "vitest"
+import { beforeAll, describe, expect, it } from "vitest"
+
+import compactRouteData from "@/data/generated/route-data.compact.json"
 
 import {
   airports,
   getDestinationAirports,
   getRoute,
+  initializeRouteData,
   routeData,
   searchAirports,
+  type CompactRouteDataSnapshot,
 } from "."
 
 describe("checked-in route data", () => {
+  beforeAll(() => {
+    initializeRouteData(compactRouteData as CompactRouteDataSnapshot)
+  })
+
   it("records its source revision and contains a useful network", () => {
     expect(routeData.metadata.sourceCommit).toMatch(/^[a-f0-9]{40}$/)
     expect(airports.length).toBeGreaterThan(900)
-    expect(routeData.routes.length).toBeGreaterThan(7_000)
+    expect(routeData.routes).toHaveLength(7_661)
   })
 
   it("only returns destinations directly connected to the selected origin", () => {

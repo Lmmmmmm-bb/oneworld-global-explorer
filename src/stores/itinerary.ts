@@ -6,7 +6,7 @@ import {
   areItinerariesEqual,
   cloneItinerary,
   createEmptyItinerary,
-  itinerarySchema,
+  isItinerary,
   type CabinClass,
   type FlightSegment,
   type Itinerary,
@@ -241,10 +241,11 @@ export const useItineraryStore = create<ItineraryStore>()(
       partialize: ({ itinerary }) => ({ itinerary }),
       merge: (persisted, current) => {
         const candidate = (persisted as Partial<ItineraryStore>)?.itinerary
-        const parsed = itinerarySchema.safeParse(candidate)
         return {
           ...current,
-          itinerary: parsed.success ? parsed.data : current.itinerary,
+          itinerary: isItinerary(candidate)
+            ? cloneItinerary(candidate)
+            : current.itinerary,
           past: [],
           future: [],
           lastHistoryEvent: null,

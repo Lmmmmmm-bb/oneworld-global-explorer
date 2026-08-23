@@ -4,13 +4,13 @@ import path from "node:path"
 import { promisify } from "node:util"
 
 import { ELIGIBLE_CARRIER_CODES, ROUTE_SOURCE } from "./config.mjs"
-import { transformRouteData } from "./transform.mjs"
+import { compactRouteData, transformRouteData } from "./transform.mjs"
 
 const OUTPUT_DIRECTORY = path.resolve(
   import.meta.dirname,
   "../../src/data/generated"
 )
-const OUTPUT_FILE = path.join(OUTPUT_DIRECTORY, "route-data.json")
+const OUTPUT_FILE = path.join(OUTPUT_DIRECTORY, "route-data.compact.json")
 const execFileAsync = promisify(execFile)
 
 const fetchJson = async (url) => {
@@ -43,9 +43,10 @@ const snapshot = transformRouteData({
   sourceCommit,
   sourceRepository: ROUTE_SOURCE.repository,
 })
+const compactSnapshot = compactRouteData(snapshot)
 
 await mkdir(OUTPUT_DIRECTORY, { recursive: true })
-await writeFile(OUTPUT_FILE, `${JSON.stringify(snapshot)}\n`, "utf8")
+await writeFile(OUTPUT_FILE, `${JSON.stringify(compactSnapshot)}\n`, "utf8")
 
 console.info(
   `Wrote ${snapshot.airports.length} airports and ${snapshot.routes.length} routes from ${sourceCommit.slice(0, 12)}.`

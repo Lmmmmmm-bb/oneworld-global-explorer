@@ -7,9 +7,21 @@ import { defineConfig } from "vite"
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
-    // The checked-in offline route snapshot intentionally lives in the main
-    // bundle and is substantially smaller over the wire after compression.
-    chunkSizeWarningLimit: 1500,
+    chunkSizeWarningLimit: 500,
+    manifest: true,
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (
+            id.includes("/node_modules/react/") ||
+            id.includes("/node_modules/react-dom/") ||
+            id.includes("/node_modules/scheduler/")
+          ) {
+            return "react-core"
+          }
+        },
+      },
+    },
   },
   resolve: {
     alias: {

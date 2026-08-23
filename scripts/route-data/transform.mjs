@@ -11,11 +11,7 @@ const toAirport = (airport) => {
   const latitude = toCoordinate(airport.latitude)
   const longitude = toCoordinate(airport.longitude)
 
-  if (
-    !isAirportCode(airport.iata) ||
-    latitude === null ||
-    longitude === null
-  ) {
+  if (!isAirportCode(airport.iata) || latitude === null || longitude === null) {
     return null
   }
 
@@ -92,5 +88,55 @@ export const transformRouteData = ({
     },
     airports,
     routes,
+  }
+}
+
+export const compactRouteData = (snapshot) => {
+  const airportIndexByIata = new Map(
+    snapshot.airports.map((airport, index) => [airport.iata, index])
+  )
+  const routeByPair = new Map(
+    snapshot.routes.map((route) => [`${route.from}-${route.to}`, route])
+  )
+  const canonicalPairs = new Set(
+    snapshot.routes.map((route) => [route.from, route.to].sort().join("-"))
+  )
+
+  const pairs = [...canonicalPairs].sort().map((key) => {
+    const [from, to] = key.split("-")
+    const forward = routeByPair.get(`${from}-${to}`)
+    const reverse = routeByPair.get(`${to}-${from}`)
+    const forwardCarriers = forward?.carrierCodes.join(",") ?? null
+    const reverseCarriers = reverse?.carrierCodes.join(",") ?? null
+    const pair = [
+      airportIndexByIata.get(from),
+      airportIndexByIata.get(to),
+      (forward ?? reverse).distanceMiles,
+      forward?.estimatedMinutes ?? null,
+      reverse?.estimatedMinutes ?? null,
+      forwardCarriers,
+    ]
+
+    if (!forward || !reverse || forwardCarriers !== reverseCarriers) {
+      pair.push(reverseCarriers)
+    }
+
+    return pair
+  })
+
+  return {
+    schemaVersion: 2,
+    metadata: snapshot.metadata,
+    airports: snapshot.airports.map((airport) => [
+      airport.iata,
+      airport.name,
+      airport.city,
+      airport.country,
+      airport.countryCode,
+      airport.continentCode,
+      airport.latitude,
+      airport.longitude,
+    ]),
+    pairs,
   }
 }

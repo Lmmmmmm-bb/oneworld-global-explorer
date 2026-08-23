@@ -1,10 +1,8 @@
 export { createEmptyItinerary, createFlightSegment } from "./factories"
+export { isItinerary } from "./guard"
 export { areItinerariesEqual, cloneItinerary } from "./history"
-export {
-  downloadItineraryJson,
-  parseItineraryJson,
-  serializeItinerary,
-} from "./json"
+export { parseItineraryJson } from "./json"
+export { downloadItineraryJson, serializeItinerary } from "./serialization"
 export { flightSegmentSchema, itinerarySchema } from "./schema"
 export type { ItineraryImportResult } from "./json"
 export type { ItineraryChange } from "./history"

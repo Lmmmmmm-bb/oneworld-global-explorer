@@ -1,11 +1,14 @@
-import type { FC } from "react"
+import type { FC, ReactNode } from "react"
 
-import { RouteMap } from "./route-map"
 import { ValidationPanel } from "./validation-panel"
 
-export const PlannerAside: FC = () => (
+interface PlannerAsideProps {
+  routeMap: ReactNode
+}
+
+export const PlannerAside: FC<PlannerAsideProps> = ({ routeMap }) => (
   <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
-    <RouteMap />
+    {routeMap}
     <ValidationPanel />
   </aside>
 )

@@ -1,11 +1,9 @@
 import { itinerarySchema } from "./schema"
+export { serializeItinerary } from "./serialization"
 import type { Itinerary } from "./types"
 
 export type ItineraryImportResult =
   { success: true; itinerary: Itinerary } | { success: false; issues: string[] }
-
-export const serializeItinerary = (itinerary: Itinerary) =>
-  `${JSON.stringify(itinerarySchema.parse(itinerary), null, 2)}\n`
 
 export const parseItineraryJson = (source: string): ItineraryImportResult => {
   let value: unknown
@@ -25,16 +23,4 @@ export const parseItineraryJson = (source: string): ItineraryImportResult => {
       return `${path}${issue.message}`
     }),
   }
-}
-
-export const downloadItineraryJson = (itinerary: Itinerary) => {
-  const blob = new Blob([serializeItinerary(itinerary)], {
-    type: "application/json",
-  })
-  const url = URL.createObjectURL(blob)
-  const anchor = document.createElement("a")
-  anchor.href = url
-  anchor.download = "global-explorer-itinerary.json"
-  anchor.click()
-  URL.revokeObjectURL(url)
 }

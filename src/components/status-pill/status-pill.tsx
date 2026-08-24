@@ -1,5 +1,5 @@
 import type { FC } from "react"
-import { AlertTriangle, CheckCircle2, CircleDashed } from "lucide-react"
+import { AlertTriangle, Check, CircleDashed } from "lucide-react"
 
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
@@ -9,17 +9,20 @@ const STATUS_DETAILS = {
   incomplete: {
     label: "Incomplete",
     icon: CircleDashed,
-    className: "border-amber-200 bg-amber-50 text-amber-800",
+    className: "border-amber-300 bg-amber-50 text-amber-950",
+    iconClassName: "bg-amber-500 text-white",
   },
   valid: {
     label: "Route valid",
-    icon: CheckCircle2,
-    className: "border-emerald-200 bg-emerald-50 text-emerald-800",
+    icon: Check,
+    className: "border-emerald-300 bg-emerald-50 text-emerald-950",
+    iconClassName: "bg-emerald-600 text-white",
   },
   invalid: {
     label: "Route invalid",
     icon: AlertTriangle,
-    className: "border-red-200 bg-red-50 text-red-800",
+    className: "border-red-300 bg-red-50 text-red-950",
+    iconClassName: "bg-red-600 text-white",
   },
 } as const
 
@@ -34,12 +37,23 @@ export const StatusPill: FC<StatusPillProps> = ({ status }) => {
   return (
     <Badge
       aria-live="polite"
-      className={cn("gap-1.5 rounded-full px-2.5 py-1", details.className)}
+      className={cn(
+        "h-7 gap-1.5 rounded-none px-1.5 pr-2.5 py-1 text-[0.6875rem] leading-none font-semibold tracking-[0.01em]",
+        details.className
+      )}
       role="status"
       variant="outline"
     >
-      <Icon aria-hidden="true" className="size-3.5" />
-      {details.label}
+      <span
+        aria-hidden="true"
+        className={cn(
+          "grid size-4 shrink-0 place-items-center",
+          details.iconClassName
+        )}
+      >
+        <Icon className="size-2.5" strokeWidth={2.5} />
+      </span>
+      <span>{details.label}</span>
     </Badge>
   )
 }

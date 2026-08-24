@@ -1,0 +1,41 @@
+# oneworld Global Explorer Planner
+
+> An unofficial, browser-based planner for building and validating oneworld Global Explorer round-the-world itineraries.
+
+## Purpose
+
+Use this application to construct a flight-by-flight itinerary, estimate mileage, and check the route-derived Global Explorer rules implemented by the planner.
+
+## Recommended workflow
+
+1. Open the browser planner at `/`.
+2. Select the cabin class and mileage band.
+3. Add flights in travel order.
+4. Mark each intermediate arrival as a transfer or stopover.
+5. Review route validation after every change.
+6. Continue until the status is Valid, or report unresolved violations, incomplete requirements, warnings, and limitations to the user.
+
+## Machine-readable resources
+
+- Capabilities: `/capabilities.json`
+- Itinerary and route-data schema: `/schema.json`
+- Airport and eligible route snapshot: `/route-data.json`
+- Browser planner: `/`
+
+## Important behavior
+
+- Routes in `/route-data.json` are directional.
+- Only direct routes attributed to eligible Global Explorer carriers are included.
+- A missing route may reflect incomplete or outdated source data and does not prove that a flight does not operate.
+- Open jaws are derived when consecutive flights use different airports. A closing origin-to-destination open jaw can also be enabled in the planner.
+- Itinerary mileage is estimated from airport coordinates. Route-snapshot distance and duration fields are planning data, not fare-construction guarantees.
+- Valid means the route passes the checks implemented by this planner.
+- Valid does not confirm schedules, inventory, fares, booking-class availability, minimum connection times, ticketing agreements, pricing, or ticket issuance.
+
+## Privacy and persistence
+
+The planner stores the current itinerary in browser-local storage. Itinerary data is not uploaded by the application. Clearing browser data can remove the saved itinerary.
+
+## Official terms
+
+- Global Explorer Rule 9701 dated 27 February 2026: https://assets.ctfassets.net/m9ph4qvas97u/2pqmhTK95sqIsn5UP02lz/a55a65324e4eff966e9d520216b6c307/Global_Explorer_27_FEB_26.pdf

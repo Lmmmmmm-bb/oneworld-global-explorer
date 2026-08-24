@@ -83,7 +83,27 @@ missing route may reflect incomplete or outdated source data; its absence does
 not prove that a flight does not operate. Schedules and airline participation
 can change, so verify every flight with the airline before booking.
 
-## Development and bundle reporting
+## Machine-readable resources
+
+Agent-capable browsers and other tools can discover the planner's purpose,
+portable itinerary format, current capabilities, and checked-in route network
+through stable public resources:
+
+- `/llms.txt` provides concise usage guidance and links to the other resources.
+- `/schema.json` defines the itinerary JSON format and the public route-data
+  format using JSON Schema Draft 2020-12.
+- `/capabilities.json` describes the planner features, rule scope, and known
+  limitations without claiming live booking capabilities.
+- `/route-data.json` exposes the same airport and directed-route snapshot used
+  by the planner in an expanded, field-named format.
+
+The public route snapshot is generated alongside the compact browser snapshot
+by `pnpm data:update`. Run `pnpm data:export-public` to rebuild only the public
+snapshot from the current checked-in compact data without contacting upstream.
+GitHub Actions repeats that export and fails when the committed public snapshot
+is missing or out of date.
+
+## Development
 
 Use Node.js 20.19 or newer with the pinned pnpm version:
 
@@ -97,9 +117,7 @@ pnpm build
 `pnpm data:update` refreshes the checked-in compact route snapshot from the
 configured upstream revision. The snapshot is emitted as a hashed static asset
 and decoded in the browser; dialogs, JSON validation, and the interactive globe
-remain in separate on-demand chunks. Run `pnpm build:report` after a production
-build to inspect the current gzip measurements. The report is informational and
-does not block production builds.
+remain in separate on-demand chunks.
 
 ## Important limitations
 

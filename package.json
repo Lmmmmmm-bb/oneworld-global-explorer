@@ -12,7 +12,7 @@
     "dev": "vite",
     "data:update": "node scripts/route-data/update.mjs",
     "build": "tsc -b && vite build",
-    "build:report": "node scripts/bundle-report.mjs",
+    "data:export-public": "node scripts/route-data/export-public.mjs",
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "test": "vitest run",

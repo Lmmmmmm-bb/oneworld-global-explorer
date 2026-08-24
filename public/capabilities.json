@@ -1,0 +1,49 @@
+{
+  "capabilitiesVersion": 1,
+  "application": {
+    "name": "Global Explorer Planner",
+    "description": "An unofficial planning and validation tool for oneworld Global Explorer itineraries.",
+    "unofficial": true,
+    "browserUrl": "/"
+  },
+  "resources": {
+    "instructions": "/llms.txt",
+    "schema": "/schema.json",
+    "routeData": "/route-data.json"
+  },
+  "interactionModes": ["browser-ui", "json-import", "json-export"],
+  "planning": {
+    "cabinClasses": ["economy", "business", "first"],
+    "mileageBands": [26000, 29000, 34000, 39000],
+    "automaticMileageBand": true,
+    "arrivalTypes": ["transfer", "stopover"],
+    "supportsCodeshares": true,
+    "supportsOpenJaws": true,
+    "supportsUndoRedo": true,
+    "persistence": "browser-local"
+  },
+  "ruleLimits": {
+    "minimumTotalSegments": 3,
+    "maximumTotalSegments": 16,
+    "minimumStopovers": 2
+  },
+  "validation": {
+    "statuses": ["incomplete", "invalid", "valid"],
+    "implementedRuleSections": ["4", "8"],
+    "officialTermsUrl": "https://assets.ctfassets.net/m9ph4qvas97u/2pqmhTK95sqIsn5UP02lz/a55a65324e4eff966e9d520216b6c307/Global_Explorer_27_FEB_26.pdf"
+  },
+  "routeData": {
+    "format": "expanded-directed-routes",
+    "schema": "/schema.json#/$defs/routeDataSnapshot"
+  },
+  "notSupported": [
+    "live schedules",
+    "inventory",
+    "booking-class availability",
+    "fares",
+    "taxes and surcharges",
+    "minimum connection times",
+    "current ticketing agreements",
+    "ticket issuance confirmation"
+  ]
+}

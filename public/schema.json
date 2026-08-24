@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Global Explorer Itinerary",
+  "description": "The portable itinerary format accepted and exported by Global Explorer Planner.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "cabinClass",
+    "mileageBand",
+    "endWithOpenJaw",
+    "flights"
+  ],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "cabinClass": { "enum": ["economy", "business", "first"] },
+    "mileageBand": { "enum": ["auto", 26000, 29000, 34000, 39000] },
+    "endWithOpenJaw": { "type": "boolean" },
+    "flights": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/flightSegment" }
+    }
+  },
+  "$defs": {
+    "flightSegment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "from",
+        "to",
+        "marketingCarrier",
+        "isCodeshare",
+        "operatingCarrier",
+        "arrivalType"
+      ],
+      "properties": {
+        "id": { "type": "string", "minLength": 1 },
+        "from": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "to": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "marketingCarrier": { "type": "string", "minLength": 1 },
+        "isCodeshare": { "type": "boolean" },
+        "operatingCarrier": { "type": "string" },
+        "arrivalType": { "enum": ["stopover", "transfer"] }
+      },
+      "allOf": [
+        {
+          "if": {
+            "required": ["isCodeshare"],
+            "properties": { "isCodeshare": { "const": true } }
+          },
+          "then": {
+            "properties": {
+              "operatingCarrier": { "type": "string", "minLength": 1 }
+            }
+          }
+        }
+      ]
+    },
+    "airport": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "iata",
+        "name",
+        "city",
+        "country",
+        "countryCode",
+        "continentCode",
+        "latitude",
+        "longitude"
+      ],
+      "properties": {
+        "iata": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "name": { "type": "string" },
+        "city": { "type": "string" },
+        "country": { "type": "string" },
+        "countryCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "continentCode": { "type": "string", "pattern": "^[A-Z]{2}$" },
+        "latitude": { "type": "number", "minimum": -90, "maximum": 90 },
+        "longitude": { "type": "number", "minimum": -180, "maximum": 180 }
+      }
+    },
+    "eligibleRoute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from",
+        "to",
+        "distanceMiles",
+        "estimatedMinutes",
+        "carrierCodes"
+      ],
+      "properties": {
+        "from": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "to": { "type": "string", "pattern": "^[A-Z]{3}$" },
+        "distanceMiles": { "type": "number", "minimum": 0 },
+        "estimatedMinutes": {
+          "oneOf": [{ "type": "number", "minimum": 0 }, { "type": "null" }]
+        },
+        "carrierCodes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^[A-Z0-9]{2}$" }
+        }
+      }
+    },
+    "routeDataSnapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["schemaVersion", "metadata", "airports", "routes"],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "sourceRepository",
+            "sourceCommit",
+            "eligibleCarrierCodes",
+            "airportCount",
+            "routeCount"
+          ],
+          "properties": {
+            "sourceRepository": { "type": "string", "format": "uri" },
+            "sourceCommit": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{40}$"
+            },
+            "eligibleCarrierCodes": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "type": "string", "pattern": "^[A-Z0-9]{2}$" }
+            },
+            "airportCount": { "type": "integer", "minimum": 0 },
+            "routeCount": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "airports": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/airport" }
+        },
+        "routes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/eligibleRoute" }
+        }
+      }
+    }
+  }
+}

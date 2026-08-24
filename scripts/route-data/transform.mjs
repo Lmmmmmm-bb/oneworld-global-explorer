@@ -140,3 +140,102 @@ export const compactRouteData = (snapshot) => {
     pairs,
   }
 }
+
+const parseCarrierCodes = (source) => source.split(",")
+
+export const expandCompactRouteData = (compact) => {
+  if (
+    compact.schemaVersion !== 2 ||
+    !Array.isArray(compact.airports) ||
+    !Array.isArray(compact.pairs)
+  ) {
+    throw new Error("Unsupported compact route data snapshot format.")
+  }
+
+  const airports = compact.airports.map(
+    ([
+      iata,
+      name,
+      city,
+      country,
+      countryCode,
+      continentCode,
+      latitude,
+      longitude,
+    ]) => ({
+      iata,
+      name,
+      city,
+      country,
+      countryCode,
+      continentCode,
+      latitude,
+      longitude,
+    })
+  )
+  const routes = []
+
+  compact.pairs.forEach(
+    ([
+      fromAirportIndex,
+      toAirportIndex,
+      distanceMiles,
+      forwardEstimatedMinutes,
+      reverseEstimatedMinutes,
+      forwardCarrierCodes,
+      reverseCarrierCodes,
+    ]) => {
+      const from = airports[fromAirportIndex]?.iata
+      const to = airports[toAirportIndex]?.iata
+      if (!from || !to) {
+        throw new Error("Compact route data references an unknown airport.")
+      }
+
+      if (forwardCarrierCodes !== null) {
+        routes.push({
+          from,
+          to,
+          distanceMiles,
+          estimatedMinutes: forwardEstimatedMinutes,
+          carrierCodes: parseCarrierCodes(forwardCarrierCodes),
+        })
+      }
+
+      const resolvedReverseCarrierCodes =
+        reverseCarrierCodes === undefined
+          ? forwardCarrierCodes
+          : reverseCarrierCodes
+      if (resolvedReverseCarrierCodes !== null) {
+        routes.push({
+          from: to,
+          to: from,
+          distanceMiles,
+          estimatedMinutes: reverseEstimatedMinutes,
+          carrierCodes: parseCarrierCodes(resolvedReverseCarrierCodes),
+        })
+      }
+    }
+  )
+
+  routes.sort(
+    (left, right) =>
+      left.from.localeCompare(right.from) || left.to.localeCompare(right.to)
+  )
+
+  return {
+    metadata: compact.metadata,
+    airports,
+    routes,
+  }
+}
+
+export const createPublicRouteData = (snapshot) => ({
+  schemaVersion: 1,
+  metadata: {
+    ...snapshot.metadata,
+    airportCount: snapshot.airports.length,
+    routeCount: snapshot.routes.length,
+  },
+  airports: snapshot.airports,
+  routes: snapshot.routes,
+})

@@ -7,8 +7,6 @@ import { defineConfig } from "vite"
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
-    chunkSizeWarningLimit: 500,
-    manifest: true,
     rollupOptions: {
       output: {
         manualChunks(id) {

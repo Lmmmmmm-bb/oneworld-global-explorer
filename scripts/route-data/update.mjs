@@ -4,13 +4,22 @@ import path from "node:path"
 import { promisify } from "node:util"
 
 import { ELIGIBLE_CARRIER_CODES, ROUTE_SOURCE } from "./config.mjs"
-import { compactRouteData, transformRouteData } from "./transform.mjs"
+import {
+  compactRouteData,
+  createPublicRouteData,
+  transformRouteData,
+} from "./transform.mjs"
 
 const OUTPUT_DIRECTORY = path.resolve(
   import.meta.dirname,
   "../../src/data/generated"
 )
 const OUTPUT_FILE = path.join(OUTPUT_DIRECTORY, "route-data.compact.json")
+const PUBLIC_OUTPUT_DIRECTORY = path.resolve(
+  import.meta.dirname,
+  "../../public"
+)
+const PUBLIC_OUTPUT_FILE = path.join(PUBLIC_OUTPUT_DIRECTORY, "route-data.json")
 const execFileAsync = promisify(execFile)
 
 const fetchJson = async (url) => {
@@ -44,9 +53,16 @@ const snapshot = transformRouteData({
   sourceRepository: ROUTE_SOURCE.repository,
 })
 const compactSnapshot = compactRouteData(snapshot)
+const publicSnapshot = createPublicRouteData(snapshot)
 
-await mkdir(OUTPUT_DIRECTORY, { recursive: true })
-await writeFile(OUTPUT_FILE, `${JSON.stringify(compactSnapshot)}\n`, "utf8")
+await Promise.all([
+  mkdir(OUTPUT_DIRECTORY, { recursive: true }),
+  mkdir(PUBLIC_OUTPUT_DIRECTORY, { recursive: true }),
+])
+await Promise.all([
+  writeFile(OUTPUT_FILE, `${JSON.stringify(compactSnapshot)}\n`, "utf8"),
+  writeFile(PUBLIC_OUTPUT_FILE, `${JSON.stringify(publicSnapshot)}\n`, "utf8"),
+])
 
 console.info(
   `Wrote ${snapshot.airports.length} airports and ${snapshot.routes.length} routes from ${sourceCommit.slice(0, 12)}.`

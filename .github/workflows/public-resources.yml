@@ -1,0 +1,46 @@
+name: Verify public resources
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/public-resources.yml"
+      - "package.json"
+      - "public/route-data.json"
+      - "scripts/route-data/**"
+      - "src/data/generated/route-data.compact.json"
+  push:
+    paths:
+      - ".github/workflows/public-resources.yml"
+      - "package.json"
+      - "public/route-data.json"
+      - "scripts/route-data/**"
+      - "src/data/generated/route-data.compact.json"
+
+permissions:
+  contents: read
+
+jobs:
+  public-route-data:
+    name: Public route data is current
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20.19.0
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Regenerate public route data
+        run: pnpm data:export-public
+
+      - name: Include a missing generated file in the diff
+        run: git add --intent-to-add public/route-data.json
+
+      - name: Verify the generated file is committed and current
+        run: git diff --exit-code -- public/route-data.json

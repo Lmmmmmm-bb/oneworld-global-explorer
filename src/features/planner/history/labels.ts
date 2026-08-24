@@ -22,8 +22,8 @@ export const formatHistoryChange = (change: ItineraryChange): string => {
         : `Change mileage band to ${change.mileageBand / 1_000}K`
     case "openJaw.change":
       return `${change.enabled ? "Enable" : "Disable"} ending open jaw`
-    case "itinerary.import":
-      return "Import itinerary"
+    case "itinerary.copyFromShare":
+      return "Copy shared itinerary"
     case "itinerary.reset":
       return "Start new itinerary"
   }

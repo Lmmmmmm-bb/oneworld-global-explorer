@@ -16,9 +16,9 @@ import createGlobe, {
 } from "cobe"
 
 import { Card, CardContent } from "@/components/ui/card"
+import type { FlightSegment } from "@/features/itinerary"
 import { airportByIata } from "@/features/route-data"
 import { cn } from "@/lib/utils"
-import { useItineraryStore } from "@/stores"
 
 import { buildGlobeRouteData } from "../globe-data"
 import {
@@ -91,8 +91,11 @@ const getMarkerStyle = (id: string) =>
     positionAnchor: `--cobe-${id}`,
   }) as CSSProperties
 
-export const RouteMap: FC = () => {
-  const flights = useItineraryStore((state) => state.itinerary.flights)
+interface RouteMapProps {
+  flights: FlightSegment[]
+}
+
+export const RouteMap: FC<RouteMapProps> = ({ flights }) => {
   const routeData = useMemo(
     () => buildGlobeRouteData(flights, airportByIata),
     [flights]

@@ -11,7 +11,7 @@
     "schema": "/schema.json",
     "routeData": "/route-data.json"
   },
-  "interactionModes": ["browser-ui", "json-import", "json-export"],
+  "interactionModes": ["browser-ui", "link-share", "read-only-share"],
   "planning": {
     "cabinClasses": ["economy", "business", "first"],
     "mileageBands": [26000, 29000, 34000, 39000],
@@ -20,7 +20,16 @@
     "supportsCodeshares": true,
     "supportsOpenJaws": true,
     "supportsUndoRedo": true,
+    "supportsShareCopyToLocal": true,
     "persistence": "browser-local"
+  },
+  "sharing": {
+    "route": "/#/share/v1/{payload}",
+    "encoding": "json-utf8-zlib-base64url",
+    "compressionLibrary": "fflate",
+    "readOnlyByDefault": true,
+    "maximumUrlCharacters": 8000,
+    "maximumDecodedBytes": 65536
   },
   "ruleLimits": {
     "minimumTotalSegments": 3,

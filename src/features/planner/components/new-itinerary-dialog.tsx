@@ -18,14 +18,14 @@ interface NewItineraryDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onConfirm: () => void
-  onExport: () => void
+  onShare: () => void
 }
 
 export const NewItineraryDialog: FC<NewItineraryDialogProps> = ({
   open,
   onOpenChange,
   onConfirm,
-  onExport,
+  onShare,
 }) => (
   <AlertDialog open={open} onOpenChange={onOpenChange}>
     <AlertDialogContent>
@@ -35,15 +35,21 @@ export const NewItineraryDialog: FC<NewItineraryDialogProps> = ({
         </AlertDialogMedia>
         <AlertDialogTitle>Start a new itinerary?</AlertDialogTitle>
         <AlertDialogDescription>
-          This replaces the single plan saved in this browser. Export the
-          current JSON for a separate backup, or undo this change before
-          reloading the page.
+          This replaces the single plan saved in this browser. Copy a share link
+          for a separate backup, or undo this change before reloading the page.
         </AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter className="sm:flex-wrap">
         <AlertDialogCancel>Cancel</AlertDialogCancel>
-        <Button onClick={onExport} type="button" variant="outline">
-          Export JSON first
+        <Button
+          onClick={() => {
+            onOpenChange(false)
+            onShare()
+          }}
+          type="button"
+          variant="outline"
+        >
+          Share current first
         </Button>
         <AlertDialogAction
           onClick={() => {

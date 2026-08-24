@@ -10,8 +10,7 @@ import { StatusPill } from "@/components/status-pill"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { APP_CONFIG } from "@/config"
-import type { RuleMessage } from "@/features/itinerary"
-import { useItineraryValidation } from "@/hooks"
+import type { ItineraryValidation, RuleMessage } from "@/features/itinerary"
 import { cn } from "@/lib/utils"
 import { formatMiles } from "@/utils"
 
@@ -57,8 +56,11 @@ const RuleMessageRow: FC<RuleMessageRowProps> = ({ message }) => {
   )
 }
 
-export const ValidationPanel: FC = () => {
-  const validation = useItineraryValidation()
+interface ValidationPanelProps {
+  validation: ItineraryValidation
+}
+
+export const ValidationPanel: FC<ValidationPanelProps> = ({ validation }) => {
   const { metrics } = validation
   const primaryMessages =
     validation.status === "invalid"

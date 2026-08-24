@@ -5,9 +5,13 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
-import type { FlightSegment } from "@/features/itinerary"
-import { useItineraryValidation } from "@/hooks"
-import { useItineraryStore } from "@/stores"
+import type {
+  CabinClass,
+  FlightSegment,
+  Itinerary,
+  ItineraryValidation,
+  MileageBandPreference,
+} from "@/features/itinerary"
 
 import { FlightCard } from "./flight-card"
 import { ItineraryEmptyState } from "./itinerary-empty-state"
@@ -15,28 +19,51 @@ import { OpenJawCard } from "./open-jaw-card"
 import { PlanSettings } from "./plan-settings"
 
 interface ItineraryPanelProps {
-  onAddFlight: () => void
-  onEditFlight: (flight: FlightSegment) => void
+  itinerary: Itinerary
+  validation: ItineraryValidation
+  readOnly?: boolean
+  onAddFlight?: () => void
+  onCabinClassChange?: (cabinClass: CabinClass) => void
+  onDeleteFlight?: (id: string) => void
+  onEditFlight?: (flight: FlightSegment) => void
+  onEndWithOpenJawChange?: (enabled: boolean) => void
+  onMileageBandChange?: (mileageBand: MileageBandPreference) => void
 }
 
 export const ItineraryPanel: FC<ItineraryPanelProps> = ({
+  itinerary,
   onAddFlight,
+  onCabinClassChange,
+  onDeleteFlight,
   onEditFlight,
+  onEndWithOpenJawChange,
+  onMileageBandChange,
+  readOnly = false,
+  validation,
 }) => {
-  const itinerary = useItineraryStore((state) => state.itinerary)
-  const deleteFlight = useItineraryStore((state) => state.deleteFlight)
-  const setEndWithOpenJaw = useItineraryStore(
-    (state) => state.setEndWithOpenJaw
-  )
-  const validation = useItineraryValidation()
-
   if (itinerary.flights.length === 0) {
     return (
       <div className="space-y-4">
         <Card className="gap-0 overflow-hidden py-0">
-          <PlanSettings />
+          <PlanSettings
+            itinerary={itinerary}
+            onCabinClassChange={onCabinClassChange}
+            onMileageBandChange={onMileageBandChange}
+            readOnly={readOnly}
+          />
         </Card>
-        <ItineraryEmptyState onAddFlight={onAddFlight} />
+        {readOnly || !onAddFlight ? (
+          <Card className="grid min-h-48 place-items-center p-6 text-center">
+            <div>
+              <p className="text-sm font-semibold">No flights in this plan</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                This shared itinerary is currently empty.
+              </p>
+            </div>
+          </Card>
+        ) : (
+          <ItineraryEmptyState onAddFlight={onAddFlight} />
+        )}
       </div>
     )
   }
@@ -47,7 +74,12 @@ export const ItineraryPanel: FC<ItineraryPanelProps> = ({
 
   return (
     <Card className="gap-0 overflow-hidden py-0">
-      <PlanSettings />
+      <PlanSettings
+        itinerary={itinerary}
+        onCabinClassChange={onCabinClassChange}
+        onMileageBandChange={onMileageBandChange}
+        readOnly={readOnly}
+      />
       <div className="flex items-center justify-between gap-4 border-b p-3">
         <div>
           <h2 className="text-sm font-semibold">Flight sequence</h2>
@@ -55,10 +87,12 @@ export const ItineraryPanel: FC<ItineraryPanelProps> = ({
             Flights and open jaws stay in route order.
           </p>
         </div>
-        <Button onClick={onAddFlight} size="sm" type="button">
-          <Plus aria-hidden="true" />
-          Add flight
-        </Button>
+        {onAddFlight ? (
+          <Button onClick={onAddFlight} size="sm" type="button">
+            <Plus aria-hidden="true" />
+            Add flight
+          </Button>
+        ) : null}
       </div>
       <div className="p-3">
         <div className="divide-y border">
@@ -69,8 +103,10 @@ export const ItineraryPanel: FC<ItineraryPanelProps> = ({
                 <FlightCard
                   flight={flight}
                   index={index}
-                  onDelete={() => deleteFlight(flight.id)}
-                  onEdit={() => onEditFlight(flight)}
+                  onDelete={
+                    onDeleteFlight ? () => onDeleteFlight(flight.id) : undefined
+                  }
+                  onEdit={onEditFlight ? () => onEditFlight(flight) : undefined}
                 />
                 {openJaw ? <OpenJawCard openJaw={openJaw} /> : null}
               </Fragment>
@@ -86,11 +122,17 @@ export const ItineraryPanel: FC<ItineraryPanelProps> = ({
             closing surface distance counts toward mileage and segments.
           </p>
         </div>
-        <Switch
-          checked={itinerary.endWithOpenJaw}
-          id="end-open-jaw"
-          onCheckedChange={setEndWithOpenJaw}
-        />
+        {readOnly ? (
+          <span className="shrink-0 text-xs font-medium">
+            {itinerary.endWithOpenJaw ? "Yes" : "No"}
+          </span>
+        ) : (
+          <Switch
+            checked={itinerary.endWithOpenJaw}
+            id="end-open-jaw"
+            onCheckedChange={onEndWithOpenJawChange}
+          />
+        )}
       </div>
     </Card>
   )

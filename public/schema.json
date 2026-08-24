@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Global Explorer Itinerary",
-  "description": "The portable itinerary format accepted and exported by Global Explorer Planner.",
+  "description": "The itinerary data model embedded in Global Explorer Planner share links.",
   "type": "object",
   "additionalProperties": false,
   "required": [

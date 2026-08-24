@@ -17,7 +17,8 @@ endorsed by oneworld or its member airlines.
 - Compare a trip with the available 26,000, 29,000, 34,000, and 39,000-mile
   bands.
 - View flight segments and airports on an interactive globe.
-- Import and export a plan as JSON for backup or sharing.
+- Share a read-only itinerary snapshot with a link.
+- Copy a shared itinerary into the local planner when you want to edit it.
 - Undo and redo committed itinerary changes while you work.
 
 ## Plan an itinerary
@@ -31,8 +32,9 @@ endorsed by oneworld or its member airlines.
    treats the gap as an open jaw and includes it in the totals.
 4. Follow the mileage summary, globe, and validation panel while adjusting the
    route.
-5. Export the itinerary when you want a portable backup. Import that JSON file
-   later to continue planning.
+5. Use **Share** when you want a portable backup or want someone else to review
+   the itinerary. A recipient can explicitly choose **Copy and edit** to make a
+   local editable copy.
 
 Your current itinerary is saved automatically in this browser.
 
@@ -43,8 +45,26 @@ and `Ctrl+Shift+Z` / `Cmd+Shift+Z` to redo. `Ctrl+Y` also redoes a change on
 Windows and Linux.
 
 Adding, editing, or deleting a flight and changing plan settings each create a
-history step. Importing or starting a new itinerary can also be undone as one
-step. Draft changes inside an editor are added to history only when saved.
+history step. Copying a shared itinerary or starting a new itinerary can also
+be undone as one step. Draft changes inside an editor are added to history only
+when saved.
+
+## Share an itinerary
+
+Choose **Share** to create a `#/share/v1/…` link. The planner wraps the current
+itinerary in a versioned envelope, encodes it as UTF-8, compresses it with
+`fflate` using its default settings, and converts the result to Base64URL. The
+encoded snapshot stays in the URL fragment, which browsers do not send in the
+HTTP request.
+
+Opening a share link displays the decoded snapshot in read-only mode and does
+not replace the itinerary already saved in that browser. **Copy and edit** is
+the explicit handoff into local storage. If a local plan already exists, the
+confirmation dialog can copy its own share link first.
+
+Share links are limited to 8,000 characters and decoded share data is limited
+to 64 KiB. Invalid, damaged, oversized, and unsupported versions show an error
+without loading the planner workspace.
 
 Up to 100 changes are kept for the current browser tab. Reloading the page
 keeps the automatically saved itinerary but clears its undo and redo history.
@@ -72,8 +92,9 @@ local storage and is not uploaded by the application. The route network and
 globe are bundled with the app, so normal planning does not require a route or
 map service.
 
-Clearing browser data can remove a saved itinerary. Export your plan as JSON if
-you want a separate backup.
+Clearing browser data can remove a saved itinerary. Copy a share link if you
+want a separate snapshot backup. Anyone with that link can read the embedded
+itinerary, so treat it as access to the plan.
 
 ## Route coverage
 
@@ -86,7 +107,7 @@ can change, so verify every flight with the airline before booking.
 ## Machine-readable resources
 
 Agent-capable browsers and other tools can discover the planner's purpose,
-portable itinerary format, current capabilities, and checked-in route network
+itinerary data model, current capabilities, and checked-in route network
 through stable public resources:
 
 - `/llms.txt` provides concise usage guidance and links to the other resources.
@@ -116,7 +137,7 @@ pnpm build
 
 `pnpm data:update` refreshes the checked-in compact route snapshot from the
 configured upstream revision. The snapshot is emitted as a hashed static asset
-and decoded in the browser; dialogs, JSON validation, and the interactive globe
+and decoded in the browser; sharing dialogs, share decoding, and the interactive globe
 remain in separate on-demand chunks.
 
 ## Important limitations

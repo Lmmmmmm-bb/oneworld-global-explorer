@@ -15,7 +15,7 @@ export type ItineraryChange =
       mileageBand: MileageBandPreference
     }
   | { type: "openJaw.change"; enabled: boolean }
-  | { type: "itinerary.import" }
+  | { type: "itinerary.copyFromShare" }
   | { type: "itinerary.reset" }
 
 export const cloneItinerary = (itinerary: Itinerary): Itinerary => ({

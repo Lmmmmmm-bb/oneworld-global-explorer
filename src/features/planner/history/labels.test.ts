@@ -28,7 +28,7 @@ describe("history labels", () => {
       "Change mileage band to Auto",
     ],
     [{ type: "openJaw.change", enabled: true }, "Enable ending open jaw"],
-    [{ type: "itinerary.import" }, "Import itinerary"],
+    [{ type: "itinerary.copyFromShare" }, "Copy shared itinerary"],
     [{ type: "itinerary.reset" }, "Start new itinerary"],
   ])("formats %o", (change, expected) => {
     expect(formatHistoryChange(change)).toBe(expected)

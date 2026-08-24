@@ -39,7 +39,7 @@ interface ItineraryStore {
   setCabinClass: (cabinClass: CabinClass) => void
   setMileageBand: (mileageBand: MileageBandPreference) => void
   setEndWithOpenJaw: (endWithOpenJaw: boolean) => void
-  replaceItinerary: (itinerary: Itinerary) => void
+  copySharedItinerary: (itinerary: Itinerary) => void
   resetItinerary: () => void
   undo: () => void
   redo: () => void
@@ -179,10 +179,10 @@ export const useItineraryStore = create<ItineraryStore>()(
             endWithOpenJaw,
           })
         ),
-      replaceItinerary: (itinerary) =>
+      copySharedItinerary: (itinerary) =>
         commitItinerary(
           set,
-          () => ({ type: "itinerary.import" }),
+          () => ({ type: "itinerary.copyFromShare" }),
           () => cloneItinerary(itinerary)
         ),
       resetItinerary: () =>

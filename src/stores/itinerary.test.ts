@@ -85,23 +85,23 @@ describe("itinerary store", () => {
     expect(useItineraryStore.getState().future).toEqual([])
   })
 
-  it("treats import and new itinerary as reversible single changes", () => {
+  it("treats copying a share and starting new as reversible single changes", () => {
     useItineraryStore.getState().addFlight(savedFlight())
-    const beforeImport = useItineraryStore.getState().itinerary
-    const imported = {
+    const beforeCopy = useItineraryStore.getState().itinerary
+    const shared = {
       ...createEmptyItinerary(),
       cabinClass: "first" as const,
     }
 
-    useItineraryStore.getState().replaceItinerary(imported)
+    useItineraryStore.getState().copySharedItinerary(shared)
     expect(useItineraryStore.getState().itinerary.cabinClass).toBe("first")
     useItineraryStore.getState().undo()
-    expect(useItineraryStore.getState().itinerary).toEqual(beforeImport)
+    expect(useItineraryStore.getState().itinerary).toEqual(beforeCopy)
 
     useItineraryStore.getState().resetItinerary()
     expect(useItineraryStore.getState().itinerary.flights).toEqual([])
     useItineraryStore.getState().undo()
-    expect(useItineraryStore.getState().itinerary).toEqual(beforeImport)
+    expect(useItineraryStore.getState().itinerary).toEqual(beforeCopy)
   })
 
   it("protects stored snapshots from caller mutations", () => {
@@ -111,12 +111,12 @@ describe("itinerary store", () => {
 
     expect(useItineraryStore.getState().itinerary.flights[0].from).toBe("LHR")
 
-    const imported = {
+    const shared = {
       ...createEmptyItinerary(),
       flights: [savedFlight()],
     }
-    useItineraryStore.getState().replaceItinerary(imported)
-    imported.flights[0].to = "MAD"
+    useItineraryStore.getState().copySharedItinerary(shared)
+    shared.flights[0].to = "MAD"
     expect(useItineraryStore.getState().itinerary.flights[0].to).toBe("JFK")
   })
 

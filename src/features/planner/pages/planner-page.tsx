@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useRef, useState, type FC } from "react"
+import { lazy, Suspense, useEffect, useMemo, useState, type FC } from "react"
 import { ListOrdered, Map, Plus, ShieldCheck } from "lucide-react"
 
 import { AppHeader } from "@/components/app-header"
@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import type { FlightSegment, Itinerary } from "@/features/itinerary"
+import type { FlightSegment } from "@/features/itinerary"
+import { validateItinerary } from "@/features/rules"
 import { useMediaQuery } from "@/hooks"
 import { useItineraryStore } from "@/stores"
 
@@ -20,20 +21,15 @@ type MobileTab = "itinerary" | "map" | "validation"
 
 const loadFlightEditorDialog = () =>
   import("../components/flight-editor-dialog")
-const loadImportItineraryDialog = () =>
-  import("../components/import-itinerary-dialog")
 const loadNewItineraryDialog = () =>
   import("../components/new-itinerary-dialog")
 const loadRouteMap = () => import("../components/route-map")
+const loadShareItineraryDialog = () =>
+  import("@/features/sharing/components/share-itinerary-dialog")
 
 const FlightEditorDialog = lazy(() =>
   loadFlightEditorDialog().then((module) => ({
     default: module.FlightEditorDialog,
-  }))
-)
-const ImportItineraryDialog = lazy(() =>
-  loadImportItineraryDialog().then((module) => ({
-    default: module.ImportItineraryDialog,
   }))
 )
 const NewItineraryDialog = lazy(() =>
@@ -43,6 +39,11 @@ const NewItineraryDialog = lazy(() =>
 )
 const RouteMap = lazy(() =>
   loadRouteMap().then((module) => ({ default: module.RouteMap }))
+)
+const ShareItineraryDialog = lazy(() =>
+  loadShareItineraryDialog().then((module) => ({
+    default: module.ShareItineraryDialog,
+  }))
 )
 
 const MapFallback: FC = () => (
@@ -62,7 +63,12 @@ const PlannerPageContent: FC = () => {
   const itinerary = useItineraryStore((state) => state.itinerary)
   const addFlight = useItineraryStore((state) => state.addFlight)
   const updateFlight = useItineraryStore((state) => state.updateFlight)
-  const replaceItinerary = useItineraryStore((state) => state.replaceItinerary)
+  const deleteFlight = useItineraryStore((state) => state.deleteFlight)
+  const setCabinClass = useItineraryStore((state) => state.setCabinClass)
+  const setMileageBand = useItineraryStore((state) => state.setMileageBand)
+  const setEndWithOpenJaw = useItineraryStore(
+    (state) => state.setEndWithOpenJaw
+  )
   const resetItinerary = useItineraryStore((state) => state.resetItinerary)
   const past = useItineraryStore((state) => state.past)
   const future = useItineraryStore((state) => state.future)
@@ -72,14 +78,14 @@ const PlannerPageContent: FC = () => {
   const [editorOpen, setEditorOpen] = useState(false)
   const [editingFlight, setEditingFlight] = useState<FlightSegment | null>(null)
   const [newDialogOpen, setNewDialogOpen] = useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = useState(false)
   const [mobileTab, setMobileTab] = useState<MobileTab>("itinerary")
-  const [importFile, setImportFile] = useState<File | null>(null)
   const [desktopMapReady, setDesktopMapReady] = useState(false)
-  const importInputRef = useRef<HTMLInputElement>(null)
   const lastArrival = itinerary.flights.at(-1)?.to ?? ""
   const isDesktop = useMediaQuery("(min-width: 1024px)")
   const undoChange = past.at(-1)?.change
   const redoChange = future.at(-1)?.change
+  const validation = useMemo(() => validateItinerary(itinerary), [itinerary])
 
   useHistoryShortcuts()
 
@@ -111,31 +117,13 @@ const PlannerPageContent: FC = () => {
     else addFlight(flight)
   }
 
-  const exportCurrent = () => {
-    void import("@/features/itinerary/serialization").then(
-      ({ downloadItineraryJson }) => downloadItineraryJson(itinerary)
-    )
-  }
-
-  const handleImport = (imported: Itinerary) => {
-    replaceItinerary(imported)
-    setEditingFlight(null)
-    setMobileTab("itinerary")
+  const openShareDialog = () => {
+    void loadShareItineraryDialog()
+    setShareDialogOpen(true)
   }
 
   return (
     <div className="min-h-svh bg-[#f7f8f6] pb-20 lg:pb-0">
-      <input
-        accept="application/json,.json"
-        hidden
-        onChange={(event) => {
-          const file = event.target.files?.[0]
-          event.target.value = ""
-          if (file) setImportFile(file)
-        }}
-        ref={importInputRef}
-        type="file"
-      />
       <AppHeader
         history={{
           canUndo: Boolean(undoChange),
@@ -146,15 +134,11 @@ const PlannerPageContent: FC = () => {
           onRedo: redo,
         }}
         onAddFlight={openAddFlight}
-        onExport={exportCurrent}
-        onImport={() => {
-          void loadImportItineraryDialog()
-          importInputRef.current?.click()
-        }}
         onNew={() => {
           void loadNewItineraryDialog()
           setNewDialogOpen(true)
         }}
+        onShare={openShareDialog}
       />
       <p aria-atomic="true" aria-live="polite" className="sr-only">
         {lastHistoryEvent
@@ -175,24 +159,31 @@ const PlannerPageContent: FC = () => {
           </p>
         </div>
 
-        <SummaryStrip />
+        <SummaryStrip itinerary={itinerary} validation={validation} />
 
         {isDesktop ? (
           <div className="mt-5 grid grid-cols-[minmax(0,3fr)_minmax(340px,2fr)] items-start gap-5">
             <ItineraryPanel
+              itinerary={itinerary}
               onAddFlight={openAddFlight}
+              onCabinClassChange={setCabinClass}
+              onDeleteFlight={deleteFlight}
               onEditFlight={openEditFlight}
+              onEndWithOpenJawChange={setEndWithOpenJaw}
+              onMileageBandChange={setMileageBand}
+              validation={validation}
             />
             <PlannerAside
               routeMap={
                 desktopMapReady ? (
                   <Suspense fallback={<MapFallback />}>
-                    <RouteMap />
+                    <RouteMap flights={itinerary.flights} />
                   </Suspense>
                 ) : (
                   <MapFallback />
                 )
               }
+              validation={validation}
             />
           </div>
         ) : (
@@ -220,19 +211,25 @@ const PlannerPageContent: FC = () => {
             </TabsList>
             <TabsContent className="mt-4" value="itinerary">
               <ItineraryPanel
+                itinerary={itinerary}
                 onAddFlight={openAddFlight}
+                onCabinClassChange={setCabinClass}
+                onDeleteFlight={deleteFlight}
                 onEditFlight={openEditFlight}
+                onEndWithOpenJawChange={setEndWithOpenJaw}
+                onMileageBandChange={setMileageBand}
+                validation={validation}
               />
             </TabsContent>
             <TabsContent className="mt-4" value="map">
               {mobileTab === "map" ? (
                 <Suspense fallback={<MapFallback />}>
-                  <RouteMap />
+                  <RouteMap flights={itinerary.flights} />
                 </Suspense>
               ) : null}
             </TabsContent>
             <TabsContent className="mt-4" value="validation">
-              <ValidationPanel />
+              <ValidationPanel validation={validation} />
             </TabsContent>
           </Tabs>
         )}
@@ -266,16 +263,6 @@ const PlannerPageContent: FC = () => {
           />
         </Suspense>
       ) : null}
-      {importFile ? (
-        <Suspense fallback={null}>
-          <ImportItineraryDialog
-            file={importFile}
-            key={`${importFile.name}-${importFile.lastModified}`}
-            onClose={() => setImportFile(null)}
-            onImport={handleImport}
-          />
-        </Suspense>
-      ) : null}
       {newDialogOpen ? (
         <Suspense fallback={null}>
           <NewItineraryDialog
@@ -284,8 +271,17 @@ const PlannerPageContent: FC = () => {
               setEditingFlight(null)
               setMobileTab("itinerary")
             }}
-            onExport={exportCurrent}
             onOpenChange={setNewDialogOpen}
+            onShare={openShareDialog}
+            open
+          />
+        </Suspense>
+      ) : null}
+      {shareDialogOpen ? (
+        <Suspense fallback={null}>
+          <ShareItineraryDialog
+            itinerary={itinerary}
+            onOpenChange={setShareDialogOpen}
             open
           />
         </Suspense>

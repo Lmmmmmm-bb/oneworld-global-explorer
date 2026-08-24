@@ -14,6 +14,7 @@ Use this application to construct a flight-by-flight itinerary, estimate mileage
 4. Mark each intermediate arrival as a transfer or stopover.
 5. Review route validation after every change.
 6. Continue until the status is Valid, or report unresolved violations, incomplete requirements, warnings, and limitations to the user.
+7. Use Share to create a read-only link. A recipient must explicitly choose Copy and edit before the shared plan replaces their local itinerary.
 
 ## Machine-readable resources
 
@@ -34,7 +35,7 @@ Use this application to construct a flight-by-flight itinerary, estimate mileage
 
 ## Privacy and persistence
 
-The planner stores the current itinerary in browser-local storage. Itinerary data is not uploaded by the application. Clearing browser data can remove the saved itinerary.
+The planner stores the current itinerary in browser-local storage. Itinerary data is not uploaded by the application. Share snapshots are compressed into the URL fragment and can be read by anyone who has the link. Opening a share is read-only and does not replace local data. Clearing browser data can remove the saved itinerary.
 
 ## Official terms
 

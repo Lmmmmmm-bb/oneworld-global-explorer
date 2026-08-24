@@ -2,15 +2,20 @@ import type { FC } from "react"
 
 import { StatusPill } from "@/components/status-pill"
 import { Card } from "@/components/ui/card"
-import { useItineraryValidation } from "@/hooks"
-import { useItineraryStore } from "@/stores"
+import type { Itinerary, ItineraryValidation } from "@/features/itinerary"
 import { formatMiles } from "@/utils"
 
 import { CABIN_LABELS } from "./plan-settings"
 
-export const SummaryStrip: FC = () => {
-  const itinerary = useItineraryStore((state) => state.itinerary)
-  const validation = useItineraryValidation()
+interface SummaryStripProps {
+  itinerary: Itinerary
+  validation: ItineraryValidation
+}
+
+export const SummaryStrip: FC<SummaryStripProps> = ({
+  itinerary,
+  validation,
+}) => {
   const { metrics } = validation
   const bandLabel =
     itinerary.mileageBand === "auto"

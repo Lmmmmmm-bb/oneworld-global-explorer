@@ -1,5 +1,5 @@
 import type { FC } from "react"
-import { Download, FilePlus2, FileUp, Globe2, Plus } from "lucide-react"
+import { FilePlus2, Globe2, Plus, Share2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { APP_CONFIG } from "@/config"
@@ -8,17 +8,15 @@ import { HistoryControls, type HistoryControlsProps } from "./history-controls"
 
 type AppHeaderProps = {
   onAddFlight: () => void
-  onExport: () => void
-  onImport: () => void
   onNew: () => void
+  onShare: () => void
   history: Omit<HistoryControlsProps, "variant">
 }
 
 export const AppHeader: FC<AppHeaderProps> = ({
   onAddFlight,
-  onExport,
-  onImport,
   onNew,
+  onShare,
   history,
 }) => (
   <header className="border-b bg-background/95 backdrop-blur">
@@ -54,22 +52,13 @@ export const AppHeader: FC<AppHeaderProps> = ({
           <span className="hidden xl:inline">New</span>
         </Button>
         <Button
-          aria-label="Import itinerary"
+          aria-label="Share itinerary"
           className="size-10 sm:w-auto"
-          onClick={onImport}
+          onClick={onShare}
           variant="ghost"
         >
-          <FileUp aria-hidden="true" />
-          <span className="hidden xl:inline">Import</span>
-        </Button>
-        <Button
-          aria-label="Export itinerary"
-          className="size-10 sm:w-auto"
-          onClick={onExport}
-          variant="ghost"
-        >
-          <Download aria-hidden="true" />
-          <span className="hidden xl:inline">Export</span>
+          <Share2 aria-hidden="true" />
+          <span className="hidden xl:inline">Share</span>
         </Button>
         <Button className="hidden sm:flex" onClick={onAddFlight} size="lg">
           <Plus aria-hidden="true" />

@@ -11,11 +11,11 @@ import {
 } from "@/components/ui/select"
 import type {
   CabinClass,
+  Itinerary,
   MileageBand,
   MileageBandPreference,
 } from "@/features/itinerary"
 import { getCompatibleBands } from "@/features/rules"
-import { useItineraryStore } from "@/stores"
 
 const CABIN_LABELS: Record<CabinClass, string> = {
   economy: "Economy",
@@ -28,10 +28,19 @@ const getMileageBandLabel = (band: MileageBandPreference) =>
     ? "Auto · smallest compatible band"
     : `${(band / 1_000).toFixed(0)}K miles`
 
-export const PlanSettings: FC = () => {
-  const itinerary = useItineraryStore((state) => state.itinerary)
-  const setCabinClass = useItineraryStore((state) => state.setCabinClass)
-  const setMileageBand = useItineraryStore((state) => state.setMileageBand)
+interface PlanSettingsProps {
+  itinerary: Itinerary
+  readOnly?: boolean
+  onCabinClassChange?: (cabinClass: CabinClass) => void
+  onMileageBandChange?: (mileageBand: MileageBandPreference) => void
+}
+
+export const PlanSettings: FC<PlanSettingsProps> = ({
+  itinerary,
+  onCabinClassChange,
+  onMileageBandChange,
+  readOnly = false,
+}) => {
   const compatibleBands = getCompatibleBands(itinerary.cabinClass)
 
   return (
@@ -44,21 +53,29 @@ export const PlanSettings: FC = () => {
           <Plane aria-hidden="true" className="size-3.5 text-primary" />
           Cabin
         </Label>
-        <Select
-          onValueChange={(value) => value && setCabinClass(value as CabinClass)}
-          value={itinerary.cabinClass}
-        >
-          <SelectTrigger className="h-10 w-full" id="cabin-class">
-            <SelectValue>{CABIN_LABELS[itinerary.cabinClass]}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(CABIN_LABELS).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        {readOnly ? (
+          <div className="flex h-10 items-center border bg-background px-3 text-xs font-medium">
+            {CABIN_LABELS[itinerary.cabinClass]}
+          </div>
+        ) : (
+          <Select
+            onValueChange={(value) =>
+              value && onCabinClassChange?.(value as CabinClass)
+            }
+            value={itinerary.cabinClass}
+          >
+            <SelectTrigger className="h-10 w-full" id="cabin-class">
+              <SelectValue>{CABIN_LABELS[itinerary.cabinClass]}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(CABIN_LABELS).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
       <div>
         <Label
@@ -68,31 +85,39 @@ export const PlanSettings: FC = () => {
           <Gauge aria-hidden="true" className="size-3.5 text-primary" />
           Mileage band
         </Label>
-        <Select
-          onValueChange={(value) => {
-            if (!value) return
-            setMileageBand(
-              value === "auto"
-                ? "auto"
-                : (Number(value) as MileageBandPreference)
-            )
-          }}
-          value={String(itinerary.mileageBand)}
-        >
-          <SelectTrigger className="h-10 w-full" id="mileage-band">
-            <SelectValue>
-              {getMileageBandLabel(itinerary.mileageBand)}
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="auto">{getMileageBandLabel("auto")}</SelectItem>
-            {compatibleBands.map((band: MileageBand) => (
-              <SelectItem key={band} value={String(band)}>
-                {getMileageBandLabel(band)}
+        {readOnly ? (
+          <div className="flex h-10 items-center border bg-background px-3 text-xs font-medium">
+            {getMileageBandLabel(itinerary.mileageBand)}
+          </div>
+        ) : (
+          <Select
+            onValueChange={(value) => {
+              if (!value) return
+              onMileageBandChange?.(
+                value === "auto"
+                  ? "auto"
+                  : (Number(value) as MileageBandPreference)
+              )
+            }}
+            value={String(itinerary.mileageBand)}
+          >
+            <SelectTrigger className="h-10 w-full" id="mileage-band">
+              <SelectValue>
+                {getMileageBandLabel(itinerary.mileageBand)}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="auto">
+                {getMileageBandLabel("auto")}
               </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              {compatibleBands.map((band: MileageBand) => (
+                <SelectItem key={band} value={String(band)}>
+                  {getMileageBandLabel(band)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
       </div>
     </div>
   )

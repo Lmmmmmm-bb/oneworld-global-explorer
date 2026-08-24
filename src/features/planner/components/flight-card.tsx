@@ -12,8 +12,8 @@ import { formatMiles, haversineMiles } from "@/utils"
 interface FlightCardProps {
   flight: FlightSegment
   index: number
-  onDelete: () => void
-  onEdit: () => void
+  onDelete?: () => void
+  onEdit?: () => void
 }
 
 const carrierName = (code: string) =>
@@ -81,27 +81,33 @@ export const FlightCard: FC<FlightCardProps> = ({
             ) : null}
           </div>
         </div>
-        <div className="ml-1 flex shrink-0 gap-0.5">
-          <Button
-            aria-label={`Edit flight ${index + 1}: ${flight.from} to ${flight.to}`}
-            onClick={onEdit}
-            size="icon-sm"
-            type="button"
-            variant="ghost"
-          >
-            <Pencil aria-hidden="true" />
-          </Button>
-          <Button
-            aria-label={`Delete flight ${index + 1}: ${flight.from} to ${flight.to}`}
-            className="text-muted-foreground hover:text-destructive"
-            onClick={onDelete}
-            size="icon-sm"
-            type="button"
-            variant="ghost"
-          >
-            <Trash2 aria-hidden="true" />
-          </Button>
-        </div>
+        {onEdit || onDelete ? (
+          <div className="ml-1 flex shrink-0 gap-0.5">
+            {onEdit ? (
+              <Button
+                aria-label={`Edit flight ${index + 1}: ${flight.from} to ${flight.to}`}
+                onClick={onEdit}
+                size="icon-sm"
+                type="button"
+                variant="ghost"
+              >
+                <Pencil aria-hidden="true" />
+              </Button>
+            ) : null}
+            {onDelete ? (
+              <Button
+                aria-label={`Delete flight ${index + 1}: ${flight.from} to ${flight.to}`}
+                className="text-muted-foreground hover:text-destructive"
+                onClick={onDelete}
+                size="icon-sm"
+                type="button"
+                variant="ghost"
+              >
+                <Trash2 aria-hidden="true" />
+              </Button>
+            ) : null}
+          </div>
+        ) : null}
       </div>
     </article>
   )

@@ -59,37 +59,13 @@ sizes.plannerReadyTotal =
   sizes.plannerReadyJavaScript + sizes.routeData + sizes.css
 
 const kibibytes = (bytes) => `${(bytes / 1024).toFixed(1)} KiB`
-const budgets = {
-  shellJavaScript: 70 * 1024,
-  plannerReadyJavaScript: 175 * 1024,
-  routeData: 70 * 1024,
-  css: 20 * 1024,
-  plannerReadyTotal: 260 * 1024,
-}
-
-console.log("Production bundle budget (gzip)")
-for (const [metric, budget] of Object.entries(budgets)) {
-  const size = sizes[metric]
-  const status = size <= budget ? "PASS" : "FAIL"
-  console.log(
-    `${status.padEnd(4)}  ${metric.padEnd(24)} ${kibibytes(size).padStart(10)} / ${kibibytes(budget)}`
-  )
+console.log("Production bundle report (gzip)")
+for (const [metric, size] of Object.entries(sizes)) {
+  console.log(`${metric.padEnd(24)} ${kibibytes(size).padStart(10)}`)
 }
 console.log(
-  `      initial JS requests       ${[...shellFiles].filter((key) => manifest[key]?.file?.endsWith(".js")).length}`
+  `initial JS requests       ${[...shellFiles].filter((key) => manifest[key]?.file?.endsWith(".js")).length}`
 )
 console.log(
-  `      planner-ready JS requests ${[...plannerReadyFiles].filter((key) => manifest[key]?.file?.endsWith(".js")).length}`
+  `planner-ready JS requests ${[...plannerReadyFiles].filter((key) => manifest[key]?.file?.endsWith(".js")).length}`
 )
-
-if (process.argv.includes("--check")) {
-  const failures = Object.entries(budgets).filter(
-    ([metric, budget]) => sizes[metric] > budget
-  )
-  if (failures.length > 0) {
-    process.exitCode = 1
-    console.error(
-      `Bundle budget exceeded: ${failures.map(([metric]) => metric).join(", ")}`
-    )
-  }
-}

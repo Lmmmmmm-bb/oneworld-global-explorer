@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useMemo, useState, type FC } from "react"
 import {
   Check,
   Copy,
+  ExternalLink,
   Globe2,
   ListOrdered,
   Map,
@@ -217,9 +218,20 @@ export const SharedItineraryPage: FC<SharedItineraryPageProps> = ({
           )}
         </main>
 
-        <footer className="mx-auto max-w-[1600px] px-4 py-6 text-xs text-muted-foreground sm:px-6 lg:px-8">
-          Unofficial planning tool. Final eligibility is determined by oneworld
-          and the ticketing carrier.
+        <footer className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-6 text-xs text-muted-foreground sm:px-6 lg:px-8">
+          <span>
+            Unofficial planning tool. Final eligibility is determined by oneworld
+            and the ticketing carrier.
+          </span>
+          <a
+            className="inline-flex items-center gap-1.5 underline-offset-4 hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            href="https://github.com/Lmmmmmm-bb/oneworld-global-explorer"
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            <ExternalLink aria-hidden="true" className="size-3.5" />
+            View on GitHub
+          </a>
         </footer>
 
         <CopySharedItineraryDialog

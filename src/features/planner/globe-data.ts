@@ -11,6 +11,7 @@ export interface GlobeAirportMarker {
 }
 
 export interface GlobeFlightArc {
+  flightId: string
   from: GlobeLocation
   id: string
   to: GlobeLocation
@@ -59,14 +60,15 @@ export const buildGlobeRouteData = (
     }
   )
 
-  const arcs = flights.flatMap((flight, index) => {
+  const arcs = flights.flatMap((flight) => {
     const from = airportByIata.get(flight.from)
     const to = airportByIata.get(flight.to)
     return from && to
       ? [
           {
+            flightId: flight.id,
             from: [from.latitude, from.longitude] as GlobeLocation,
-            id: `flight-${index + 1}-${flight.from.toLowerCase()}-${flight.to.toLowerCase()}`,
+            id: `flight-${flight.id}`,
             to: [to.latitude, to.longitude] as GlobeLocation,
           },
         ]

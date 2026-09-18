@@ -1,5 +1,5 @@
 import type { FC } from "react"
-import { ArrowRight, Pencil, Trash2 } from "lucide-react"
+import { ArrowRight, MapPin, Pencil, Trash2 } from "lucide-react"
 
 import { AirlineLogo } from "@/components/airline-logo"
 import { Badge } from "@/components/ui/badge"
@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import type { FlightSegment } from "@/features/itinerary"
 import { airportByIata } from "@/features/route-data"
 import { CARRIERS, OPERATING_CARRIERS } from "@/features/rules"
+import { cn } from "@/lib/utils"
 import { formatMiles, haversineMiles } from "@/utils"
 
 interface FlightCardProps {
@@ -14,6 +15,8 @@ interface FlightCardProps {
   index: number
   onDelete?: () => void
   onEdit?: () => void
+  onShowOnMap?: () => void
+  selectedOnMap?: boolean
 }
 
 const carrierName = (code: string) =>
@@ -27,13 +30,20 @@ export const FlightCard: FC<FlightCardProps> = ({
   index,
   onDelete,
   onEdit,
+  onShowOnMap,
+  selectedOnMap = false,
 }) => {
   const from = airportByIata.get(flight.from)
   const to = airportByIata.get(flight.to)
   const distance = from && to ? haversineMiles(from, to) : null
 
   return (
-    <article className="group bg-background px-3 py-2 transition-colors hover:bg-muted/20">
+    <article
+      className={cn(
+        "group bg-background px-3 py-2 transition-colors hover:bg-muted/20",
+        selectedOnMap && "bg-primary/5 ring-1 ring-primary/25 ring-inset"
+      )}
+    >
       <div className="grid grid-cols-[1.5rem_minmax(0,1fr)_auto] items-center gap-x-2.5">
         <div className="grid size-6 shrink-0 place-items-center bg-primary/10 text-[10px] font-semibold text-primary tabular-nums">
           {index + 1}
@@ -81,11 +91,31 @@ export const FlightCard: FC<FlightCardProps> = ({
             ) : null}
           </div>
         </div>
-        {onEdit || onDelete ? (
+        {onEdit || onDelete || onShowOnMap ? (
           <div className="ml-1 flex shrink-0 gap-0.5">
+            {onShowOnMap ? (
+              <Button
+                aria-label={
+                  selectedOnMap
+                    ? `Clear focus for flight ${index + 1}: ${flight.from} to ${flight.to}`
+                    : `Show flight ${index + 1}: ${flight.from} to ${flight.to} on the map`
+                }
+                aria-pressed={selectedOnMap}
+                className={
+                  selectedOnMap ? "bg-primary/10 text-primary" : undefined
+                }
+                onClick={onShowOnMap}
+                size="icon-sm"
+                type="button"
+                variant="ghost"
+              >
+                <MapPin aria-hidden="true" />
+              </Button>
+            ) : null}
             {onEdit ? (
               <Button
                 aria-label={`Edit flight ${index + 1}: ${flight.from} to ${flight.to}`}
+                data-flight-edit-id={flight.id}
                 onClick={onEdit}
                 size="icon-sm"
                 type="button"

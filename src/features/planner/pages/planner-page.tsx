@@ -1,21 +1,24 @@
 import { lazy, Suspense, useEffect, useMemo, useState, type FC } from "react"
 import { ExternalLink, ListOrdered, Map, Plus, ShieldCheck } from "lucide-react"
+import { LayoutGroup, motion } from "motion/react"
 
 import { AppHeader } from "@/components/app-header"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList } from "@/components/ui/tabs"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import type { FlightSegment } from "@/features/itinerary"
 import { validateItinerary } from "@/features/rules"
 import { useMediaQuery } from "@/hooks"
 import { useItineraryStore } from "@/stores"
 
+import { AnimatedMobileTab } from "../components/animated-mobile-tab"
 import { ItineraryPanel } from "../components/itinerary-panel"
 import { PlannerAside } from "../components/planner-aside"
 import { SummaryStrip } from "../components/summary-strip"
 import { ValidationPanel } from "../components/validation-panel"
 import { formatHistoryChange, useHistoryShortcuts } from "../history"
+import { useMapSelection } from "../map-selection"
 
 type MobileTab = "itinerary" | "map" | "validation"
 
@@ -76,6 +79,8 @@ const PlannerPageContent: FC = () => {
   const redo = useItineraryStore((state) => state.redo)
   const lastHistoryEvent = useItineraryStore((state) => state.lastHistoryEvent)
   const [editorOpen, setEditorOpen] = useState(false)
+  const [editorMounted, setEditorMounted] = useState(false)
+  const [editorSession, setEditorSession] = useState(0)
   const [editingFlight, setEditingFlight] = useState<FlightSegment | null>(null)
   const [newDialogOpen, setNewDialogOpen] = useState(false)
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
@@ -83,6 +88,11 @@ const PlannerPageContent: FC = () => {
   const [desktopMapReady, setDesktopMapReady] = useState(false)
   const lastArrival = itinerary.flights.at(-1)?.to ?? ""
   const isDesktop = useMediaQuery("(min-width: 1024px)")
+  const {
+    selection: mapSelection,
+    clearSelection: clearMapSelection,
+    toggleFlight: showFlightOnMap,
+  } = useMapSelection(isDesktop, () => setMobileTab("map"))
   const undoChange = past.at(-1)?.change
   const redoChange = future.at(-1)?.change
   const validation = useMemo(() => validateItinerary(itinerary), [itinerary])
@@ -103,13 +113,22 @@ const PlannerPageContent: FC = () => {
   const openAddFlight = () => {
     void loadFlightEditorDialog()
     setEditingFlight(null)
+    setEditorSession((session) => session + 1)
+    setEditorMounted(true)
     setEditorOpen(true)
   }
 
   const openEditFlight = (flight: FlightSegment) => {
     void loadFlightEditorDialog()
     setEditingFlight(flight)
+    setEditorSession((session) => session + 1)
+    setEditorMounted(true)
     setEditorOpen(true)
+  }
+
+  const removeFlight = (id: string) => {
+    if (mapSelection?.flightId === id) clearMapSelection()
+    deleteFlight(id)
   }
 
   const saveFlight = (flight: FlightSegment) => {
@@ -173,17 +192,23 @@ const PlannerPageContent: FC = () => {
               itinerary={itinerary}
               onAddFlight={openAddFlight}
               onCabinClassChange={setCabinClass}
-              onDeleteFlight={deleteFlight}
+              onDeleteFlight={removeFlight}
               onEditFlight={openEditFlight}
               onEndWithOpenJawChange={setEndWithOpenJaw}
               onMileageBandChange={setMileageBand}
+              onShowFlightOnMap={showFlightOnMap}
+              selectedFlightId={mapSelection?.flightId}
               validation={validation}
             />
             <PlannerAside
               routeMap={
                 desktopMapReady ? (
                   <Suspense fallback={<MapFallback />}>
-                    <RouteMap flights={itinerary.flights} />
+                    <RouteMap
+                      flights={itinerary.flights}
+                      onClearSelection={clearMapSelection}
+                      selection={mapSelection}
+                    />
                   </Suspense>
                 ) : (
                   <MapFallback />
@@ -198,44 +223,80 @@ const PlannerPageContent: FC = () => {
             onValueChange={(value) => value && setMobileTab(value as MobileTab)}
             value={mobileTab}
           >
-            <TabsList
-              className="grid h-11 w-full grid-cols-3"
-              variant="default"
-            >
-              <TabsTrigger value="itinerary">
-                <ListOrdered aria-hidden="true" />
-                Itinerary
-              </TabsTrigger>
-              <TabsTrigger value="map">
-                <Map aria-hidden="true" />
-                Map
-              </TabsTrigger>
-              <TabsTrigger value="validation">
-                <ShieldCheck aria-hidden="true" />
-                Validation
-              </TabsTrigger>
-            </TabsList>
+            <LayoutGroup id="planner-mobile-tabs">
+              <TabsList
+                className="grid h-11 w-full grid-cols-3"
+                variant="default"
+              >
+                <AnimatedMobileTab
+                  active={mobileTab === "itinerary"}
+                  value="itinerary"
+                >
+                  <ListOrdered aria-hidden="true" />
+                  Itinerary
+                </AnimatedMobileTab>
+                <AnimatedMobileTab
+                  active={mobileTab === "map"}
+                  className="planner-mobile-map-tab"
+                  value="map"
+                >
+                  <Map aria-hidden="true" />
+                  Map
+                </AnimatedMobileTab>
+                <AnimatedMobileTab
+                  active={mobileTab === "validation"}
+                  value="validation"
+                >
+                  <ShieldCheck aria-hidden="true" />
+                  Validation
+                </AnimatedMobileTab>
+              </TabsList>
+            </LayoutGroup>
             <TabsContent className="mt-4" value="itinerary">
-              <ItineraryPanel
-                itinerary={itinerary}
-                onAddFlight={openAddFlight}
-                onCabinClassChange={setCabinClass}
-                onDeleteFlight={deleteFlight}
-                onEditFlight={openEditFlight}
-                onEndWithOpenJawChange={setEndWithOpenJaw}
-                onMileageBandChange={setMileageBand}
-                validation={validation}
-              />
+              <motion.div
+                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 6 }}
+                transition={{ duration: 0.18 }}
+              >
+                <ItineraryPanel
+                  itinerary={itinerary}
+                  onAddFlight={openAddFlight}
+                  onCabinClassChange={setCabinClass}
+                  onDeleteFlight={removeFlight}
+                  onEditFlight={openEditFlight}
+                  onEndWithOpenJawChange={setEndWithOpenJaw}
+                  onMileageBandChange={setMileageBand}
+                  onShowFlightOnMap={showFlightOnMap}
+                  selectedFlightId={mapSelection?.flightId}
+                  validation={validation}
+                />
+              </motion.div>
             </TabsContent>
             <TabsContent className="mt-4" value="map">
               {mobileTab === "map" ? (
                 <Suspense fallback={<MapFallback />}>
-                  <RouteMap flights={itinerary.flights} />
+                  <motion.div
+                    animate={{ opacity: 1 }}
+                    initial={{ opacity: 0 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    <RouteMap
+                      flights={itinerary.flights}
+                      onClearSelection={clearMapSelection}
+                      selection={mapSelection}
+                    />
+                  </motion.div>
                 </Suspense>
               ) : null}
             </TabsContent>
             <TabsContent className="mt-4" value="validation">
-              <ValidationPanel validation={validation} />
+              <motion.div
+                animate={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 6 }}
+                transition={{ duration: 0.18 }}
+              >
+                <ValidationPanel validation={validation} />
+              </motion.div>
             </TabsContent>
           </Tabs>
         )}
@@ -275,14 +336,16 @@ const PlannerPageContent: FC = () => {
         </Button>
       ) : null}
 
-      {editorOpen ? (
+      {editorMounted ? (
         <Suspense fallback={null}>
           <FlightEditorDialog
             defaultOrigin={editingFlight?.from ?? lastArrival}
             flight={editingFlight}
+            key={editorSession}
+            onCloseComplete={() => setEditorMounted(false)}
             onOpenChange={setEditorOpen}
             onSave={saveFlight}
-            open
+            open={editorOpen}
           />
         </Suspense>
       ) : null}
@@ -291,6 +354,7 @@ const PlannerPageContent: FC = () => {
           <NewItineraryDialog
             onConfirm={() => {
               resetItinerary()
+              clearMapSelection()
               setEditingFlight(null)
               setMobileTab("itinerary")
             }}

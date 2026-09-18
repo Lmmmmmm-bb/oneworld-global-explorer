@@ -1,5 +1,6 @@
 import { useMemo, useState, type FC, type FormEvent } from "react"
 import { ArrowRight, Info, PlaneTakeoff } from "lucide-react"
+import { AnimatePresence, motion, useReducedMotion } from "motion/react"
 
 import { AirlineLogo } from "@/components/airline-logo"
 import { Button } from "@/components/ui/button"
@@ -39,10 +40,9 @@ interface FlightEditorDialogProps {
   flight: FlightSegment | null
   defaultOrigin: string
   onOpenChange: (open: boolean) => void
+  onCloseComplete: () => void
   onSave: (flight: FlightSegment) => void
 }
-
-type FlightDialogContentProps = Omit<FlightEditorDialogProps, "open">
 
 const carrierCodesByOrigin = new Map(
   [...routesByOrigin].map(([origin, routes]) => [
@@ -51,12 +51,16 @@ const carrierCodesByOrigin = new Map(
   ])
 )
 
-const FlightDialogContent: FC<FlightDialogContentProps> = ({
+export const FlightEditorDialog: FC<FlightEditorDialogProps> = ({
+  open,
   flight,
   defaultOrigin,
   onOpenChange,
+  onCloseComplete,
   onSave,
 }) => {
+  const reducedMotion = useReducedMotion()
+  const fieldTransition = { duration: reducedMotion ? 0 : 0.18 }
   const [draft, setDraft] = useState<FlightSegment>(() =>
     flight
       ? { ...flight }
@@ -145,7 +149,13 @@ const FlightDialogContent: FC<FlightDialogContentProps> = ({
   }
 
   return (
-    <Dialog open onOpenChange={onOpenChange}>
+    <Dialog
+      onOpenChange={onOpenChange}
+      onOpenChangeComplete={(nextOpen) => {
+        if (!nextOpen) onCloseComplete()
+      }}
+      open={open}
+    >
       <DialogContent className="flex max-h-[min(90svh,760px)] w-[calc(100%-2rem)] max-w-none! flex-col gap-0 overflow-hidden p-0 sm:max-w-xl!">
         <form
           className="flex min-h-0 flex-1 flex-col overflow-hidden"
@@ -165,14 +175,30 @@ const FlightDialogContent: FC<FlightDialogContentProps> = ({
           </DialogHeader>
 
           <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-5">
-            {defaultOrigin && draft.from !== defaultOrigin ? (
-              <div className="flex gap-2 border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                <Info aria-hidden="true" className="mt-0.5 size-4 shrink-0" />
-                The previous flight ends at {defaultOrigin}. Saving this
-                departure from {draft.from} will automatically create an open
-                jaw between them.
-              </div>
-            ) : null}
+            <AnimatePresence initial={false}>
+              {defaultOrigin && draft.from !== defaultOrigin ? (
+                <motion.div
+                  animate={{ height: "auto", opacity: 1 }}
+                  className="overflow-hidden"
+                  exit={{ height: 0, opacity: 0 }}
+                  initial={{ height: 0, opacity: 0 }}
+                  key="open-jaw-hint"
+                  transition={fieldTransition}
+                >
+                  <div className="flex gap-2 border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                    <Info
+                      aria-hidden="true"
+                      className="mt-0.5 size-4 shrink-0"
+                    />
+                    <span>
+                      The previous flight ends at {defaultOrigin}. Saving this
+                      departure from {draft.from} will automatically create an
+                      open jaw between them.
+                    </span>
+                  </div>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
 
             <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-end gap-3 sm:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)]">
               <AirportCombobox
@@ -270,66 +296,82 @@ const FlightDialogContent: FC<FlightDialogContentProps> = ({
               />
             </div>
 
-            {draft.isCodeshare ? (
-              <div className="space-y-2">
-                <Label htmlFor="operating-carrier">Operating carrier</Label>
-                <Select
-                  onValueChange={(operatingCarrier) =>
-                    operatingCarrier &&
-                    setDraft((current) => ({
-                      ...current,
-                      operatingCarrier,
-                    }))
-                  }
-                  value={draft.operatingCarrier || null}
+            <AnimatePresence initial={false}>
+              {draft.isCodeshare ? (
+                <motion.div
+                  animate={{ height: "auto", opacity: 1 }}
+                  className="overflow-hidden"
+                  exit={{ height: 0, opacity: 0 }}
+                  initial={{ height: 0, opacity: 0 }}
+                  key="operating-carrier"
+                  transition={fieldTransition}
                 >
-                  <SelectTrigger className="h-11 w-full" id="operating-carrier">
-                    <SelectValue>
-                      {(value: string | null) => {
-                        const carrier = operatingCarriers.find(
-                          ({ id }) => id === value
-                        )
-                        return carrier ? (
-                          <span className="flex min-w-0 items-center gap-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="operating-carrier">Operating carrier</Label>
+                    <Select
+                      onValueChange={(operatingCarrier) =>
+                        operatingCarrier &&
+                        setDraft((current) => ({
+                          ...current,
+                          operatingCarrier,
+                        }))
+                      }
+                      value={draft.operatingCarrier || null}
+                    >
+                      <SelectTrigger
+                        className="h-11 w-full"
+                        id="operating-carrier"
+                      >
+                        <SelectValue>
+                          {(value: string | null) => {
+                            const carrier = operatingCarriers.find(
+                              ({ id }) => id === value
+                            )
+                            return carrier ? (
+                              <span className="flex min-w-0 items-center gap-2">
+                                {!carrier.id.includes(":") ? (
+                                  <AirlineLogo code={carrier.id} />
+                                ) : (
+                                  <span className="grid size-5 shrink-0 place-items-center bg-primary/10 text-primary">
+                                    <PlaneTakeoff
+                                      aria-hidden="true"
+                                      className="size-3"
+                                    />
+                                  </span>
+                                )}
+                                <span className="font-medium">
+                                  {carrier.id.includes(":")
+                                    ? "Affiliate"
+                                    : carrier.id}
+                                </span>
+                                <span className="truncate text-muted-foreground">
+                                  · {carrier.name}
+                                </span>
+                              </span>
+                            ) : (
+                              "Choose an operator"
+                            )
+                          }}
+                        </SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        {operatingCarriers.map((carrier) => (
+                          <SelectItem key={carrier.id} value={carrier.id}>
                             {!carrier.id.includes(":") ? (
                               <AirlineLogo code={carrier.id} />
-                            ) : (
-                              <span className="grid size-5 shrink-0 place-items-center bg-primary/10 text-primary">
-                                <PlaneTakeoff
-                                  aria-hidden="true"
-                                  className="size-3"
-                                />
-                              </span>
-                            )}
-                            <span className="font-medium">
-                              {carrier.id.includes(":")
-                                ? "Affiliate"
-                                : carrier.id}
-                            </span>
-                            <span className="truncate text-muted-foreground">
-                              · {carrier.name}
-                            </span>
-                          </span>
-                        ) : (
-                          "Choose an operator"
-                        )
-                      }}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {operatingCarriers.map((carrier) => (
-                      <SelectItem key={carrier.id} value={carrier.id}>
-                        {!carrier.id.includes(":") ? (
-                          <AirlineLogo code={carrier.id} />
-                        ) : null}
-                        {carrier.id.includes(":") ? "Affiliate" : carrier.id} ·{" "}
-                        {carrier.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            ) : null}
+                            ) : null}
+                            {carrier.id.includes(":")
+                              ? "Affiliate"
+                              : carrier.id}{" "}
+                            · {carrier.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
 
             <div className="space-y-2">
               <Label htmlFor="arrival-type">After arrival</Label>
@@ -376,14 +418,3 @@ const FlightDialogContent: FC<FlightDialogContentProps> = ({
     </Dialog>
   )
 }
-
-export const FlightEditorDialog: FC<FlightEditorDialogProps> = ({
-  open,
-  ...props
-}) =>
-  open ? (
-    <FlightDialogContent
-      key={props.flight?.id ?? `new:${props.defaultOrigin}`}
-      {...props}
-    />
-  ) : null

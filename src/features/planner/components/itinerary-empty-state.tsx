@@ -34,7 +34,12 @@ export const ItineraryEmptyState: FC<ItineraryEmptyStateProps> = ({
           Add direct route
         </div>
       </div>
-      <Button className="w-full" onClick={onAddFlight} size="lg">
+      <Button
+        className="w-full"
+        data-flight-add
+        onClick={onAddFlight}
+        size="lg"
+      >
         <Plus aria-hidden="true" />
         Add first flight
       </Button>

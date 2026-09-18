@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   CircleDashed,
 } from "lucide-react"
+import { AnimatePresence, motion } from "motion/react"
 
 import { StatusPill } from "@/components/status-pill"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,7 +19,7 @@ interface RuleMessageRowProps {
   message: RuleMessage
 }
 
-const RuleMessageRow: FC<RuleMessageRowProps> = ({ message }) => {
+const RuleMessageContent: FC<RuleMessageRowProps> = ({ message }) => {
   const Icon =
     message.kind === "violation"
       ? AlertCircle
@@ -27,14 +28,7 @@ const RuleMessageRow: FC<RuleMessageRowProps> = ({ message }) => {
         : CircleDashed
 
   return (
-    <li
-      className={cn(
-        "flex gap-2.5 border p-3",
-        message.kind === "violation" && "border-red-200 bg-red-50/70",
-        message.kind === "warning" && "border-amber-200 bg-amber-50/70",
-        message.kind === "incomplete" && "border-border bg-muted/25"
-      )}
-    >
+    <>
       <Icon
         aria-hidden="true"
         className={cn(
@@ -52,9 +46,24 @@ const RuleMessageRow: FC<RuleMessageRowProps> = ({ message }) => {
           {message.description}
         </span>
       </span>
-    </li>
+    </>
   )
 }
+
+const messageMotion = {
+  initial: { opacity: 0, y: 6 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -6 },
+  transition: { duration: 0.18 },
+}
+
+const getMessageClassName = (message: RuleMessage) =>
+  cn(
+    "relative flex gap-2.5 border p-3",
+    message.kind === "violation" && "border-red-200 bg-red-50/70",
+    message.kind === "warning" && "border-amber-200 bg-amber-50/70",
+    message.kind === "incomplete" && "border-border bg-muted/25"
+  )
 
 interface ValidationPanelProps {
   validation: ItineraryValidation
@@ -118,35 +127,40 @@ export const ValidationPanel: FC<ValidationPanelProps> = ({ validation }) => {
           </div>
         ) : null}
 
-        {validation.status === "valid" ? (
-          <div className="flex gap-2.5 border border-emerald-200 bg-emerald-50 p-3 text-emerald-900">
-            <CheckCircle2
-              aria-hidden="true"
-              className="mt-0.5 size-4 shrink-0"
-            />
-            <div>
-              <p className="text-xs font-medium">All route checks passed</p>
-              <p className="mt-0.5 text-[11px] leading-5 text-emerald-800">
-                The current plan passes the basic route-derived checks included
-                in this planner.
-              </p>
-            </div>
-          </div>
-        ) : (
-          <ul className="space-y-2">
-            {primaryMessages.map((message) => (
-              <RuleMessageRow key={message.id} message={message} />
+        <ul className="relative space-y-2">
+          <AnimatePresence initial={false} mode="popLayout">
+            {validation.status === "valid" ? (
+              <motion.li
+                {...messageMotion}
+                className="relative flex gap-2.5 border border-emerald-200 bg-emerald-50 p-3 text-emerald-900"
+                key="route:valid"
+                layout="position"
+              >
+                <CheckCircle2
+                  aria-hidden="true"
+                  className="mt-0.5 size-4 shrink-0"
+                />
+                <div>
+                  <p className="text-xs font-medium">All route checks passed</p>
+                  <p className="mt-0.5 text-[11px] leading-5 text-emerald-800">
+                    The current plan passes the basic route-derived checks
+                    included in this planner.
+                  </p>
+                </div>
+              </motion.li>
+            ) : null}
+            {[...primaryMessages, ...validation.warnings].map((message) => (
+              <motion.li
+                {...messageMotion}
+                className={getMessageClassName(message)}
+                key={`${message.kind}:${message.id}`}
+                layout="position"
+              >
+                <RuleMessageContent message={message} />
+              </motion.li>
             ))}
-          </ul>
-        )}
-
-        {validation.warnings.length > 0 ? (
-          <ul className="space-y-2">
-            {validation.warnings.map((message) => (
-              <RuleMessageRow key={message.id} message={message} />
-            ))}
-          </ul>
-        ) : null}
+          </AnimatePresence>
+        </ul>
       </CardContent>
       <p className="border-t p-3 text-[11px] leading-5 text-muted-foreground">
         Basic planning checks only. This does not confirm pricing, inventory,

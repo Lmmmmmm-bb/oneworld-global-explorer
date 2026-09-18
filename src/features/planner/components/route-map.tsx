@@ -1,4 +1,5 @@
 import {
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -8,6 +9,7 @@ import {
   type KeyboardEvent,
   type PointerEvent,
 } from "react"
+import { AnimatePresence, motion } from "motion/react"
 import createGlobe, {
   type Arc,
   type COBEOptions,
@@ -15,6 +17,7 @@ import createGlobe, {
   type Marker,
 } from "cobe"
 
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import type { FlightSegment } from "@/features/itinerary"
 import { airportByIata } from "@/features/route-data"
@@ -26,6 +29,7 @@ import {
   smoothAngularVelocity,
   stepAngularInertia,
 } from "../globe-motion"
+import type { MapSelection } from "../map-selection"
 
 type GlobeAvailability = "checking" | "available" | "unavailable"
 
@@ -55,6 +59,10 @@ interface FocusAnimation {
 }
 
 const INITIAL_SCALE = 0.9
+const DEFAULT_MARKER_SIZE = 0.035
+const MUTED_MARKER_SIZE = 0.016
+const FOCUSED_ROUTE_COLOR: [number, number, number] = [0.02, 0.48, 0.32]
+const MUTED_ROUTE_COLOR: [number, number, number] = [0.62, 0.74, 0.69]
 const AUTO_ROTATE_RADIANS_PER_MS = 0.00006
 const INTERACTION_PAUSE_MS = 1_800
 const FOCUS_ANIMATION_MS = 650
@@ -93,31 +101,65 @@ const getMarkerStyle = (id: string) =>
 
 interface RouteMapProps {
   flights: FlightSegment[]
+  onClearSelection: () => void
+  selection?: MapSelection | null
 }
 
-export const RouteMap: FC<RouteMapProps> = ({ flights }) => {
+export const RouteMap: FC<RouteMapProps> = ({
+  flights,
+  onClearSelection,
+  selection,
+}) => {
+  const selectedFlightId = selection?.flightId
+  const selectedFlight = flights.find(({ id }) => id === selectedFlightId)
+  const focusedFrom = selectedFlight?.from
+  const focusedTo = selectedFlight?.to
+  const hasFocus = focusedFrom !== undefined && focusedTo !== undefined
   const routeData = useMemo(
     () => buildGlobeRouteData(flights, airportByIata),
     [flights]
   )
-  const globeMarkers = useMemo<Marker[]>(
-    () =>
-      routeData.markers.map(({ id, location }) => ({
+  const visibleMarkers = hasFocus
+    ? routeData.markers.filter(
+        ({ airport }) =>
+          airport.iata === focusedFrom || airport.iata === focusedTo
+      )
+    : routeData.markers
+  const globeMarkers = useMemo<Marker[]>(() => {
+    const focusedFlight = flights.find(({ id }) => id === selectedFlightId)
+    return routeData.markers.map(({ airport, id, location }) => {
+      const isFocusedAirport =
+        airport.iata === focusedFlight?.from ||
+        airport.iata === focusedFlight?.to
+      const isMuted = Boolean(focusedFlight) && !isFocusedAirport
+
+      return {
         id,
         location,
-        size: 0.035,
-      })),
-    [routeData.markers]
-  )
-  const globeArcs = useMemo<Arc[]>(
-    () =>
-      routeData.arcs.map(({ from, id, to }) => ({
-        from,
-        id,
-        to,
-      })),
-    [routeData.arcs]
-  )
+        size: isMuted ? MUTED_MARKER_SIZE : DEFAULT_MARKER_SIZE,
+        color: focusedFlight
+          ? isFocusedAirport
+            ? FOCUSED_ROUTE_COLOR
+            : MUTED_ROUTE_COLOR
+          : undefined,
+      }
+    })
+  }, [flights, routeData.markers, selectedFlightId])
+  const globeArcs = useMemo<Arc[]>(() => {
+    const hasSelectedArc = routeData.arcs.some(
+      ({ flightId }) => flightId === selectedFlightId
+    )
+    return routeData.arcs.map(({ flightId, from, id, to }) => ({
+      color: hasSelectedArc
+        ? flightId === selectedFlightId
+          ? FOCUSED_ROUTE_COLOR
+          : MUTED_ROUTE_COLOR
+        : undefined,
+      from,
+      id,
+      to,
+    }))
+  }, [routeData.arcs, selectedFlightId])
 
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const canvasMountRef = useRef<HTMLDivElement>(null)
@@ -132,47 +174,51 @@ export const RouteMap: FC<RouteMapProps> = ({ flights }) => {
   const animationTimestampRef = useRef(0)
   const resumeRotationAtRef = useRef(0)
   const hasCenteredRouteRef = useRef(false)
+  const lastSelectionRef = useRef<MapSelection | null>(null)
   const reducedMotionRef = useRef(false)
   const [availability, setAvailability] =
     useState<GlobeAvailability>("checking")
   const [isDragging, setIsDragging] = useState(false)
 
-  const updateView = () => {
+  const updateView = useCallback(() => {
     globeRef.current?.update({
       phi: phiRef.current,
       theta: thetaRef.current,
     })
-  }
+  }, [])
 
-  const pauseAutoRotation = () => {
+  const pauseAutoRotation = useCallback(() => {
     resumeRotationAtRef.current =
       animationTimestampRef.current + INTERACTION_PAUSE_MS
-  }
+  }, [])
 
-  const focusAirport = (latitude: number, longitude: number) => {
-    inertiaVelocityRef.current = 0
-    const target = getInitialView(latitude, longitude)
-    const targetPhi = getShortestRotation(phiRef.current, target.phi)
+  const focusAirport = useCallback(
+    (latitude: number, longitude: number) => {
+      inertiaVelocityRef.current = 0
+      const target = getInitialView(latitude, longitude)
+      const targetPhi = getShortestRotation(phiRef.current, target.phi)
 
-    if (reducedMotionRef.current) {
-      focusAnimationRef.current = null
-      phiRef.current = targetPhi
-      thetaRef.current = target.theta
-      pauseAutoRotation()
-      updateView()
-      return
-    }
+      if (reducedMotionRef.current) {
+        focusAnimationRef.current = null
+        phiRef.current = targetPhi
+        thetaRef.current = target.theta
+        pauseAutoRotation()
+        updateView()
+        return
+      }
 
-    focusAnimationRef.current = {
-      duration: FOCUS_ANIMATION_MS,
-      fromPhi: phiRef.current,
-      fromTheta: thetaRef.current,
-      startedAt: null,
-      toPhi: targetPhi,
-      toTheta: target.theta,
-    }
-    resumeRotationAtRef.current = Number.POSITIVE_INFINITY
-  }
+      focusAnimationRef.current = {
+        duration: FOCUS_ANIMATION_MS,
+        fromPhi: phiRef.current,
+        fromTheta: thetaRef.current,
+        startedAt: null,
+        toPhi: targetPhi,
+        toTheta: target.theta,
+      }
+      resumeRotationAtRef.current = Number.POSITIVE_INFINITY
+    },
+    [pauseAutoRotation, updateView]
+  )
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -364,6 +410,22 @@ export const RouteMap: FC<RouteMapProps> = ({ flights }) => {
     })
   }, [globeArcs, globeMarkers, routeData.markers])
 
+  useEffect(() => {
+    if (availability !== "available") return
+    if (!selection) {
+      if (lastSelectionRef.current) {
+        focusAnimationRef.current = null
+        pauseAutoRotation()
+      }
+      lastSelectionRef.current = null
+      return
+    }
+    lastSelectionRef.current = selection
+    const flight = flights.find(({ id }) => id === selection.flightId)
+    const destination = flight && airportByIata.get(flight.to)
+    if (destination) focusAirport(destination.latitude, destination.longitude)
+  }, [availability, flights, focusAirport, pauseAutoRotation, selection])
+
   const handlePointerDown = (event: PointerEvent<HTMLDivElement>) => {
     focusAnimationRef.current = null
     inertiaVelocityRef.current = 0
@@ -533,7 +595,7 @@ export const RouteMap: FC<RouteMapProps> = ({ flights }) => {
           />
         </div>
 
-        {routeData.markers.map(({ airport, id, sequence }) => (
+        {visibleMarkers.map(({ airport, id, sequence }) => (
           <span
             aria-hidden="true"
             className="airport-globe-label"
@@ -554,28 +616,65 @@ export const RouteMap: FC<RouteMapProps> = ({ flights }) => {
 
       {routeData.markers.length > 0 ? (
         <div className="border-t p-3">
+          {selectedFlight ? (
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="min-w-0 truncate text-[11px] font-medium text-foreground">
+                Focused flight · {selectedFlight.from} → {selectedFlight.to}
+              </p>
+              <Button
+                className="shrink-0"
+                onClick={() => {
+                  interactionSurfaceRef.current?.focus()
+                  onClearSelection()
+                }}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                Clear focus
+              </Button>
+            </div>
+          ) : null}
           <ul
             aria-label="Airports shown on the globe"
-            className="flex flex-wrap gap-1.5"
+            className="relative flex flex-wrap gap-1.5"
           >
-            {routeData.markers.map(({ airport, id }) => (
-              <li className="max-w-full min-w-0" key={id}>
-                <button
-                  aria-label={`Focus globe on ${airport.iata}, ${airport.name}`}
-                  className="flex max-w-full min-w-0 items-center gap-1.5 border bg-background px-2 py-1 text-left text-[10px] transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none"
-                  onClick={() =>
-                    focusAirport(airport.latitude, airport.longitude)
-                  }
-                  title={`${airport.iata} · ${airport.name}, ${airport.city}`}
-                  type="button"
+            <AnimatePresence initial={false} mode="popLayout">
+              {visibleMarkers.map(({ airport, id }) => (
+                <motion.li
+                  animate={{ opacity: 1, y: 0 }}
+                  className="relative max-w-full min-w-0"
+                  exit={{ opacity: 0, y: -4 }}
+                  initial={{ opacity: 0, y: 4 }}
+                  key={id}
+                  layout="position"
+                  transition={{ duration: 0.18 }}
                 >
-                  <span className="font-bold text-primary">{airport.iata}</span>
-                  <span className="min-w-0 truncate text-muted-foreground">
-                    {airport.name}
-                  </span>
-                </button>
-              </li>
-            ))}
+                  <button
+                    aria-label={`Focus globe on ${airport.iata}, ${airport.name}`}
+                    className={cn(
+                      "flex max-w-full min-w-0 items-center gap-1.5 border bg-background px-2 py-1 text-left text-[10px] transition-colors hover:border-primary/40 hover:bg-primary/5 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:outline-none",
+                      selectedFlight &&
+                        (selectedFlight.from === airport.iata ||
+                          selectedFlight.to === airport.iata) &&
+                        "border-primary bg-primary/10"
+                    )}
+                    onClick={() =>
+                      focusAirport(airport.latitude, airport.longitude)
+                    }
+                    title={`${airport.iata} · ${airport.name}, ${airport.city}`}
+                    type="button"
+                  >
+                    <span className="font-bold text-primary">
+                      {airport.iata}
+                    </span>
+                    <span className="min-w-0 truncate text-muted-foreground">
+                      {airport.name}
+                    </span>
+                  </button>
+                </motion.li>
+              ))}
+            </AnimatePresence>
           </ul>
         </div>
       ) : null}

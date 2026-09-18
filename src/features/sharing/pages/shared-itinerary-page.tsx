@@ -9,11 +9,12 @@ import {
   PencilLine,
   ShieldCheck,
 } from "lucide-react"
+import { LayoutGroup, motion } from "motion/react"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsContent, TabsList } from "@/components/ui/tabs"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { APP_CONFIG } from "@/config"
 import {
@@ -22,9 +23,11 @@ import {
   type Itinerary,
 } from "@/features/itinerary"
 import { ItineraryPanel } from "@/features/planner/components/itinerary-panel"
+import { AnimatedMobileTab } from "@/features/planner/components/animated-mobile-tab"
 import { PlannerAside } from "@/features/planner/components/planner-aside"
 import { SummaryStrip } from "@/features/planner/components/summary-strip"
 import { ValidationPanel } from "@/features/planner/components/validation-panel"
+import { useMapSelection } from "@/features/planner/map-selection"
 import { validateItinerary } from "@/features/rules"
 import { useMediaQuery } from "@/hooks"
 import { useItineraryStore } from "@/stores"
@@ -70,6 +73,11 @@ export const SharedItineraryPage: FC<SharedItineraryPageProps> = ({
   const [mobileTab, setMobileTab] = useState<MobileTab>("itinerary")
   const [desktopMapReady, setDesktopMapReady] = useState(false)
   const isDesktop = useMediaQuery("(min-width: 1024px)")
+  const {
+    selection: mapSelection,
+    clearSelection: clearMapSelection,
+    toggleFlight: showFlightOnMap,
+  } = useMapSelection(isDesktop, () => setMobileTab("map"))
   const validation = useMemo(() => validateItinerary(itinerary), [itinerary])
   const hasLocalItinerary = useMemo(
     () => !areItinerariesEqual(localItinerary, createEmptyItinerary()),
@@ -159,14 +167,20 @@ export const SharedItineraryPage: FC<SharedItineraryPageProps> = ({
             <div className="mt-5 grid grid-cols-[minmax(0,3fr)_minmax(340px,2fr)] items-start gap-5">
               <ItineraryPanel
                 itinerary={itinerary}
+                onShowFlightOnMap={showFlightOnMap}
                 readOnly
+                selectedFlightId={mapSelection?.flightId}
                 validation={validation}
               />
               <PlannerAside
                 routeMap={
                   desktopMapReady ? (
                     <Suspense fallback={<MapFallback />}>
-                      <RouteMap flights={itinerary.flights} />
+                      <RouteMap
+                        flights={itinerary.flights}
+                        onClearSelection={clearMapSelection}
+                        selection={mapSelection}
+                      />
                     </Suspense>
                   ) : (
                     <MapFallback />
@@ -183,36 +197,72 @@ export const SharedItineraryPage: FC<SharedItineraryPageProps> = ({
               }
               value={mobileTab}
             >
-              <TabsList className="grid h-11 w-full grid-cols-3">
-                <TabsTrigger value="itinerary">
-                  <ListOrdered aria-hidden="true" />
-                  Itinerary
-                </TabsTrigger>
-                <TabsTrigger value="map">
-                  <Map aria-hidden="true" />
-                  Map
-                </TabsTrigger>
-                <TabsTrigger value="validation">
-                  <ShieldCheck aria-hidden="true" />
-                  Validation
-                </TabsTrigger>
-              </TabsList>
+              <LayoutGroup id="shared-mobile-tabs">
+                <TabsList className="grid h-11 w-full grid-cols-3">
+                  <AnimatedMobileTab
+                    active={mobileTab === "itinerary"}
+                    value="itinerary"
+                  >
+                    <ListOrdered aria-hidden="true" />
+                    Itinerary
+                  </AnimatedMobileTab>
+                  <AnimatedMobileTab
+                    active={mobileTab === "map"}
+                    className="planner-mobile-map-tab"
+                    value="map"
+                  >
+                    <Map aria-hidden="true" />
+                    Map
+                  </AnimatedMobileTab>
+                  <AnimatedMobileTab
+                    active={mobileTab === "validation"}
+                    value="validation"
+                  >
+                    <ShieldCheck aria-hidden="true" />
+                    Validation
+                  </AnimatedMobileTab>
+                </TabsList>
+              </LayoutGroup>
               <TabsContent className="mt-4" value="itinerary">
-                <ItineraryPanel
-                  itinerary={itinerary}
-                  readOnly
-                  validation={validation}
-                />
+                <motion.div
+                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 6 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  <ItineraryPanel
+                    itinerary={itinerary}
+                    onShowFlightOnMap={showFlightOnMap}
+                    readOnly
+                    selectedFlightId={mapSelection?.flightId}
+                    validation={validation}
+                  />
+                </motion.div>
               </TabsContent>
               <TabsContent className="mt-4" value="map">
                 {mobileTab === "map" ? (
                   <Suspense fallback={<MapFallback />}>
-                    <RouteMap flights={itinerary.flights} />
+                    <motion.div
+                      animate={{ opacity: 1 }}
+                      initial={{ opacity: 0 }}
+                      transition={{ duration: 0.18 }}
+                    >
+                      <RouteMap
+                        flights={itinerary.flights}
+                        onClearSelection={clearMapSelection}
+                        selection={mapSelection}
+                      />
+                    </motion.div>
                   </Suspense>
                 ) : null}
               </TabsContent>
               <TabsContent className="mt-4" value="validation">
-                <ValidationPanel validation={validation} />
+                <motion.div
+                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 6 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  <ValidationPanel validation={validation} />
+                </motion.div>
               </TabsContent>
             </Tabs>
           )}

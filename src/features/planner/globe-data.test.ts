@@ -52,14 +52,30 @@ describe("globe route data", () => {
     ])
     expect(data.arcs).toEqual([
       expect.objectContaining({
+        flightId: "1",
+        id: "flight-1",
         from: [37.62, -122.38],
         to: [51.47, -0.45],
       }),
       expect.objectContaining({
+        flightId: "2",
+        id: "flight-2",
         from: [51.47, -0.45],
         to: [35.77, 140.39],
       }),
     ])
+  })
+
+  it("keeps arc identities when an earlier flight is removed", () => {
+    const remainingFlight = flight("2", "LHR", "NRT")
+    const before = buildGlobeRouteData(
+      [flight("1", "SFO", "LHR"), remainingFlight],
+      airportByIata
+    )
+    const after = buildGlobeRouteData([remainingFlight], airportByIata)
+
+    expect(after.arcs[0].id).toBe(before.arcs[1].id)
+    expect(after.arcs[0].flightId).toBe(remainingFlight.id)
   })
 
   it("does not create an arc for an open jaw between flights", () => {

@@ -16,6 +16,7 @@ export type ItineraryChange =
     }
   | { type: "openJaw.change"; enabled: boolean }
   | { type: "itinerary.copyFromShare" }
+  | { type: "itinerary.replaceFromAgent" }
   | { type: "itinerary.reset" }
 
 export const cloneItinerary = (itinerary: Itinerary): Itinerary => ({

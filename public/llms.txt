@@ -23,6 +23,14 @@ Use this application to construct a flight-by-flight itinerary, estimate mileage
 - Airport and eligible route snapshot: `/route-data.json`
 - Browser planner: `/`
 
+## WebMCP browser tools
+
+When the browser exposes WebMCP, the local planner registers `search_airports`, `find_routes`, `get_itinerary`, `preview_itinerary`, `save_itinerary`, and `create_share_link` through `document.modelContext` (or the older `navigator.modelContext`). A shared-link page registers only the four read-only search, read, and preview tools.
+
+For an editable plan, call `get_itinerary` first and retain its `revision`. Use `search_airports` and `find_routes` to choose known directed routes. Pass a `draft` with `cabinClass`, `mileageBand`, `endWithOpenJaw`, and an ordered `flights` array to `preview_itinerary`. Each flight needs `from`, `to`, `marketingCarrier`, and `arrivalType`; set `isCodeshare` and `operatingCarrier` when needed. WebMCP drafts omit `schemaVersion` and flight `id`; the planner creates IDs on save. Call `save_itinerary` with the same draft and `expectedRevision` to replace the local plan as one undoable edit. If it returns `revision_conflict`, read the itinerary again before retrying. `create_share_link` returns a read-only URL containing the current plan; it does not send the link.
+
+WebMCP tools run inside a supported browser page. The static site does not expose a remote MCP endpoint. Agents outside the browser can read the public resources above, but need a browser connection to call these tools or edit the browser-local plan.
+
 ## Important behavior
 
 - Routes in `/route-data.json` are directional.

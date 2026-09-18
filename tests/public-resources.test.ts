@@ -25,6 +25,13 @@ interface CapabilitiesDocument {
   validation: {
     officialTermsUrl: string
   }
+  interactionModes: string[]
+  webmcp: {
+    api: string
+    localTools: string[]
+    sharedPageTools: string[]
+    remoteMcpEndpoint: boolean
+  }
 }
 
 interface SchemaDocument {
@@ -98,6 +105,20 @@ describe("machine-readable public resources", () => {
     expect(capabilities.validation.officialTermsUrl).toBe(
       APP_CONFIG.officialTermsUrl
     )
+    expect(capabilities.interactionModes).toContain("webmcp-browser")
+    expect(capabilities.webmcp.api).toBe("document.modelContext")
+    expect(capabilities.webmcp.localTools).toEqual([
+      "search_airports",
+      "find_routes",
+      "get_itinerary",
+      "preview_itinerary",
+      "save_itinerary",
+      "create_share_link",
+    ])
+    expect(capabilities.webmcp.sharedPageTools).toEqual(
+      capabilities.webmcp.localTools.slice(0, 4)
+    )
+    expect(capabilities.webmcp.remoteMcpEndpoint).toBe(false)
     expect(Object.values(capabilities.resources).sort()).toEqual(
       ["/llms.txt", "/route-data.json", "/schema.json"].sort()
     )
@@ -130,6 +151,7 @@ describe("machine-readable public resources", () => {
     expect(instructions).toContain("/capabilities.json")
     expect(instructions).toContain("/schema.json")
     expect(instructions).toContain("/route-data.json")
+    expect(instructions).toContain("save_itinerary")
     expect(instructions).toContain(APP_CONFIG.officialTermsUrl)
   })
 })

@@ -11,7 +11,32 @@
     "schema": "/schema.json",
     "routeData": "/route-data.json"
   },
-  "interactionModes": ["browser-ui", "link-share", "read-only-share"],
+  "interactionModes": [
+    "browser-ui",
+    "link-share",
+    "read-only-share",
+    "webmcp-browser"
+  ],
+  "webmcp": {
+    "api": "document.modelContext",
+    "availability": "supported browsers with WebMCP enabled",
+    "localTools": [
+      "search_airports",
+      "find_routes",
+      "get_itinerary",
+      "preview_itinerary",
+      "save_itinerary",
+      "create_share_link"
+    ],
+    "sharedPageTools": [
+      "search_airports",
+      "find_routes",
+      "get_itinerary",
+      "preview_itinerary"
+    ],
+    "saveBehavior": "replaces browser-local itinerary as one undoable edit after revision check",
+    "remoteMcpEndpoint": false
+  },
   "planning": {
     "cabinClasses": ["economy", "business", "first"],
     "mileageBands": [26000, 29000, 34000, 39000],

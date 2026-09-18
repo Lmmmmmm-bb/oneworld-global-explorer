@@ -124,6 +124,34 @@ snapshot from the current checked-in compact data without contacting upstream.
 GitHub Actions repeats that export and fails when the committed public snapshot
 is missing or out of date.
 
+## WebMCP for browser agents
+
+In browsers that expose [WebMCP](https://webmachinelearning.github.io/webmcp/),
+the planner registers six tools on the editable page:
+
+| Tool                | What it does                                                                   |
+| ------------------- | ------------------------------------------------------------------------------ |
+| `search_airports`   | Finds airports in the bundled snapshot.                                        |
+| `find_routes`       | Finds directed routes and eligible marketing carriers from an origin.          |
+| `get_itinerary`     | Reads the current browser-local plan, validation, and revision.                |
+| `preview_itinerary` | Checks a proposed plan without saving it.                                      |
+| `save_itinerary`    | Replaces the local plan as one undoable edit if its revision is still current. |
+| `create_share_link` | Returns a read-only link containing the local plan.                            |
+
+Shared-link pages register only the four read-only search, read, and preview
+tools. Saving a WebMCP draft never books a flight or sends itinerary data to a
+server. A draft includes the plan settings and ordered flights, without
+`schemaVersion` or flight IDs; the browser assigns IDs when it saves. A stale
+`expectedRevision` returns `revision_conflict`, so an agent must read the
+current plan again before trying to replace it. The full tool schemas are
+available to agents through WebMCP discovery.
+
+WebMCP is a browser API. It works only when the user's browser exposes it;
+[Chrome's WebMCP documentation](https://developer.chrome.com/docs/ai/webmcp)
+describes its current trial and local testing options. This static site does
+not expose a remote MCP endpoint. A remote agent needs a browser connection to
+call these tools; it can still read the public resources above without one.
+
 ## Development
 
 Use Node.js 20.19 or newer with the pinned pnpm version:

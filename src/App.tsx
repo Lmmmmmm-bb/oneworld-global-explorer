@@ -6,6 +6,7 @@ import type { Itinerary } from "@/features/itinerary"
 import { loadRouteData } from "@/features/route-data"
 import { parseShareHash } from "@/features/sharing/route"
 import type { ShareCodecErrorCode } from "@/features/sharing/codec"
+import { usePlannerWebMcp } from "@/features/webmcp/use-planner-webmcp"
 
 const loadPlannerPage = () => import("@/features/planner/pages/planner-page")
 const PlannerPage = lazy(() =>
@@ -119,6 +120,15 @@ const ShareErrorScreen: FC<{
 const App: FC = () => {
   const [state, setState] = useState<AppState>({ status: "loading" })
   const [attempt, setAttempt] = useState(0)
+
+  usePlannerWebMcp(
+    state.status === "local"
+      ? "local"
+      : state.status === "shared"
+        ? "shared"
+        : null,
+    state.status === "shared" ? state.itinerary : undefined
+  )
 
   useEffect(() => {
     let active = true

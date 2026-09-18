@@ -24,6 +24,8 @@ export const formatHistoryChange = (change: ItineraryChange): string => {
       return `${change.enabled ? "Enable" : "Disable"} ending open jaw`
     case "itinerary.copyFromShare":
       return "Copy shared itinerary"
+    case "itinerary.replaceFromAgent":
+      return "Save agent itinerary"
     case "itinerary.reset":
       return "Start new itinerary"
   }

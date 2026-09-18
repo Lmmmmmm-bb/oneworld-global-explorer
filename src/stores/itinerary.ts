@@ -40,6 +40,7 @@ interface ItineraryStore {
   setMileageBand: (mileageBand: MileageBandPreference) => void
   setEndWithOpenJaw: (endWithOpenJaw: boolean) => void
   copySharedItinerary: (itinerary: Itinerary) => void
+  replaceFromAgent: (itinerary: Itinerary) => void
   resetItinerary: () => void
   undo: () => void
   redo: () => void
@@ -183,6 +184,12 @@ export const useItineraryStore = create<ItineraryStore>()(
         commitItinerary(
           set,
           () => ({ type: "itinerary.copyFromShare" }),
+          () => cloneItinerary(itinerary)
+        ),
+      replaceFromAgent: (itinerary) =>
+        commitItinerary(
+          set,
+          () => ({ type: "itinerary.replaceFromAgent" }),
           () => cloneItinerary(itinerary)
         ),
       resetItinerary: () =>

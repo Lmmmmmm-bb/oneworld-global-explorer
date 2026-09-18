@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Learn how to plan an oneworld Global Explorer round-the-world itinerary. See a checked sample route, understand mileage bands and route checks, then open the free planner."
+    />
+    <link rel="canonical" href="https://oneworld-explorer.lmmmmmm.dev/guide/" />
+    <meta property="og:type" content="website" />
+    <meta
+      property="og:url"
+      content="https://oneworld-explorer.lmmmmmm.dev/guide/"
+    />
+    <meta
+      property="og:title"
+      content="How to Plan an oneworld Global Explorer Itinerary"
+    />
+    <meta
+      property="og:description"
+      content="A practical guide to building a Global Explorer route, checking estimated mileage and common itinerary rules, and reviewing a sample round-the-world trip."
+    />
+    <meta
+      property="og:image"
+      content="https://oneworld-explorer.lmmmmmm.dev/og-image.png"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta
+      property="og:image:alt"
+      content="Global Explorer Planner introduction on a light map grid."
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="How to Plan an oneworld Global Explorer Itinerary"
+    />
+    <meta
+      name="twitter:description"
+      content="Build a Global Explorer route, check estimated mileage and common rules, and review a sample itinerary."
+    />
+    <meta
+      name="twitter:image"
+      content="https://oneworld-explorer.lmmmmmm.dev/og-image.png"
+    />
+    <meta name="theme-color" content="#f7f8f6" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" sizes="any" />
+    <link rel="stylesheet" href="./guide.css" />
+    <title>How to Plan an oneworld Global Explorer Itinerary | Guide</title>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="page-width header-inner">
+        <a class="brand" href="/" aria-label="Open Global Explorer Planner">
+          <span class="brand-mark" aria-hidden="true">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21.54 15H17a2 2 0 0 0-2 2v4.54" />
+              <path
+                d="M7 3.34V5a3 3 0 0 0 3 3a2 2 0 0 1 2 2c0 1.1.9 2 2 2a2 2 0 0 0 2-2c0-1.1.9-2 2-2h3.17"
+              />
+              <path
+                d="M11 21.95V18a2 2 0 0 0-2-2a2 2 0 0 1-2-2v-1a2 2 0 0 0-2-2H2.05"
+              />
+              <circle cx="12" cy="12" r="10" />
+            </svg>
+          </span>
+          <span>
+            <strong>Global Explorer Planner</strong>
+            <small>Unofficial route planning tool</small>
+          </span>
+        </a>
+        <nav aria-label="Guide navigation">
+          <a href="#how-it-works">How it works</a>
+          <a href="#example">Example route</a>
+          <a class="nav-cta" href="/"
+            >Open planner <span aria-hidden="true">↗</span></a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero page-width" aria-labelledby="hero-title">
+        <div class="hero-copy">
+          <p class="eyebrow">ROUTE PLANNING / GLOBAL EXPLORER</p>
+          <h1 id="hero-title">
+            Plan your oneworld <em>Global Explorer</em> itinerary.
+          </h1>
+          <p class="hero-lead">
+            Build a round-the-world route, estimate its mileage, and catch
+            common rule issues before asking an airline or travel agent to price
+            it.
+          </p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="/"
+              >Open the planner <span aria-hidden="true">→</span></a
+            >
+            <a class="button button-secondary" href="#example"
+              >See a checked example <span aria-hidden="true">↓</span></a
+            >
+          </div>
+          <p class="hero-note">
+            Free, unofficial, and browser-based. The planner does not sell
+            tickets.
+          </p>
+        </div>
+
+        <div
+          class="route-ticket"
+          aria-label="Sample route from San Francisco through London, Tokyo and Sydney, returning to San Francisco"
+        >
+          <div class="ticket-topline">
+            <span>EXAMPLE ITINERARY</span>
+            <span class="ticket-status"
+              ><span aria-hidden="true">●</span> Route checks passed</span
+            >
+          </div>
+          <ol class="ticket-stops" aria-label="Airport sequence">
+            <li><b>SFO</b><span>San Francisco</span></li>
+            <li><b>LHR</b><span>London</span></li>
+            <li><b>HND</b><span>Tokyo</span></li>
+            <li><b>SYD</b><span>Sydney</span></li>
+            <li><b>SFO</b><span>Return</span></li>
+          </ol>
+          <div class="ticket-rule" aria-hidden="true"></div>
+          <div class="ticket-metrics">
+            <div>
+              <span>ESTIMATED DISTANCE</span
+              ><strong>23,596 <small>mi</small></strong>
+            </div>
+            <div>
+              <span>AUTO-SELECTED BAND</span
+              ><strong>26,000 <small>mi</small></strong>
+            </div>
+            <div>
+              <span>FLIGHT SEGMENTS</span
+              ><strong>4 <small>of 16</small></strong>
+            </div>
+          </div>
+          <p class="ticket-footnote">
+            Snapshot-based checks only. Route validity does not confirm ticket
+            availability.
+          </p>
+        </div>
+      </section>
+
+      <section class="scope-strip" aria-label="Planning scope">
+        <div class="page-width scope-inner">
+          <p>
+            <strong>ONE FARE PRODUCT</strong
+            ><span>Distance-based Global Explorer</span>
+          </p>
+          <p>
+            <strong>ONE WORKSPACE</strong
+            ><span>Flights, mileage, and route checks</span>
+          </p>
+          <p>
+            <strong>ONE SHARE LINK</strong
+            ><span>Read-only itinerary snapshot</span>
+          </p>
+        </div>
+      </section>
+
+      <section id="how-it-works" class="content-section page-width">
+        <div class="section-heading">
+          <p class="eyebrow">HOW IT WORKS</p>
+          <h2>Plan flight by flight, with the rules in view.</h2>
+          <p>
+            Global Explorer is the distance-based round-the-world fare. This
+            planner focuses on that product and checks the route against the
+            rules it implements from the published terms.
+          </p>
+        </div>
+        <ol class="step-grid">
+          <li>
+            <span class="step-number">01</span>
+            <h3>Choose the cabin</h3>
+            <p>
+              Let the planner select a compatible mileage band automatically, or
+              choose a band yourself.
+            </p>
+          </li>
+          <li>
+            <span class="step-number">02</span>
+            <h3>Add each flight</h3>
+            <p>
+              Pick an origin, a destination, and a carrier from the included
+              route snapshot. Mark arrivals as transfers or stopovers.
+            </p>
+          </li>
+          <li>
+            <span class="step-number">03</span>
+            <h3>Review and share</h3>
+            <p>
+              Watch the mileage and route checks update. Share a read-only
+              snapshot when you want someone else to review the plan.
+            </p>
+          </li>
+        </ol>
+      </section>
+
+      <section class="checks-section">
+        <div class="page-width checks-layout">
+          <div class="section-heading">
+            <p class="eyebrow">WHAT THE PLANNER CHECKS</p>
+            <h2>See issues while the route is still easy to change.</h2>
+          </div>
+          <div class="checks-list">
+            <div>
+              <span class="check-icon" aria-hidden="true">↗</span>
+              <p>
+                <strong>Known routes and carriers</strong
+                ><span
+                  >Suggestions come from a checked-in route snapshot, not a live
+                  schedule.</span
+                >
+              </p>
+            </div>
+            <div>
+              <span class="check-icon" aria-hidden="true">◉</span>
+              <p>
+                <strong>Mileage and segments</strong
+                ><span
+                  >Estimated flight and open-jaw distance counts toward the
+                  selected mileage band and segment limit.</span
+                >
+              </p>
+            </div>
+            <div>
+              <span class="check-icon" aria-hidden="true">◇</span>
+              <p>
+                <strong>Common routing rules</strong
+                ><span
+                  >Review crossings, direction, stopovers, regional limits,
+                  itinerary closure, and open-jaw restrictions.</span
+                >
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="example" class="content-section example-section page-width">
+        <div class="section-heading">
+          <p class="eyebrow">A ROUTE YOU CAN OPEN</p>
+          <h2>San Francisco · London · Tokyo · Sydney · San Francisco</h2>
+          <p>
+            This four-flight example passes the planner's checked-in route and
+            implemented rule checks at an estimated 23,596 miles. Open the
+            snapshot to inspect the map, mileage, and validation details.
+          </p>
+          <a
+            class="text-link"
+            href="https://oneworld-explorer.lmmmmmm.dev/#/share/v1/eJy1kUFLw0AQhf_LnOOh6ik3GymlFItWFBEPYzJJhm52l901WkL-u5MNWCkt5NLjzLw37xumgxbSWQI71gWkwIE1OXR7SKDAgJB24POaGnwh59noKM7xk3Wm0HuxUG60aQZDw4qwojnGVfgVjDRJF68c6o0lvcJvSEtUnhIoFVd1EP97BzzI6Qcbq-hqJp7SmUZa28VGCtmSwnr5NASg25EQVhk6x-RkML-TPvvMFORrdPQXYKzccUI7VC2q570VLfhgrGll2idHHNcHjjE8ciwf7k9zrNbTOaJ2KsfNgWMMjxzbtzMcj4vpHFE7leP2319i-MgRX3RJjo--_wVCe97h"
+            >Explore the read-only itinerary
+            <span aria-hidden="true">↗</span></a
+          >
+        </div>
+        <figure class="preview-frame">
+          <img
+            src="/planner-example.png"
+            width="1280"
+            height="720"
+            loading="lazy"
+            alt="Global Explorer Planner showing the four-flight sample, mileage summary, and route validation"
+          />
+          <figcaption>
+            A planning example, not a fare quote or a confirmed booking.
+          </figcaption>
+        </figure>
+      </section>
+
+      <section class="faq-section">
+        <div class="page-width">
+          <div class="section-heading">
+            <p class="eyebrow">BEFORE YOU RELY ON A ROUTE</p>
+            <h2>Know what the status means.</h2>
+          </div>
+          <div class="faq-grid">
+            <article>
+              <h3>Does “Route valid” mean I can buy this ticket?</h3>
+              <p>
+                No. It means the plan passes the route-derived checks
+                implemented here. The planner does not check live schedules,
+                seats, fares, booking classes, or whether a carrier will issue
+                the ticket.
+              </p>
+            </article>
+            <article>
+              <h3>Is this the same as oneworld Explorer?</h3>
+              <p>
+                No. Global Explorer uses a distance-based fare. The separate
+                oneworld Explorer fare is based on the continents visited. This
+                tool covers Global Explorer only. See
+                <a
+                  href="https://www.oneworld.com/round-the-world"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >oneworld's fare overview</a
+                >
+                for the product distinction.
+              </p>
+            </article>
+            <article>
+              <h3>What if a flight is missing?</h3>
+              <p>
+                The route snapshot can be incomplete or outdated. A missing
+                suggestion does not prove a flight does not operate; check
+                current schedules with the airline.
+              </p>
+            </article>
+            <article>
+              <h3>Where does my itinerary go?</h3>
+              <p>
+                Your working plan stays in this browser. A share link contains a
+                compressed snapshot in the URL; anyone with that link can read
+                the snapshot.
+              </p>
+            </article>
+          </div>
+          <p class="terms-note">
+            Use the
+            <a
+              href="https://assets.ctfassets.net/m9ph4qvas97u/2pqmhTK95sqIsn5UP02lz/a55a65324e4eff966e9d520216b6c307/Global_Explorer_27_FEB_26.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+              >published Global Explorer terms</a
+            >
+            and confirm the full journey with the issuing carrier before making
+            travel arrangements.
+          </p>
+        </div>
+      </section>
+
+      <section class="final-cta page-width">
+        <div>
+          <p class="eyebrow">READY TO PLAN?</p>
+          <h2>Start with the route you have in mind.</h2>
+          <p>
+            Build it one flight at a time, then use the checks to decide what to
+            verify next.
+          </p>
+        </div>
+        <a class="button button-primary" href="/"
+          >Open the planner <span aria-hidden="true">→</span></a
+        >
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="page-width footer-inner">
+        <p>
+          Global Explorer Planner is an independent, unofficial planning tool.
+        </p>
+        <div>
+          <a href="/">Planner</a
+          ><a href="https://github.com/Lmmmmmm-bb/oneworld-global-explorer"
+            >GitHub</a
+          >
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

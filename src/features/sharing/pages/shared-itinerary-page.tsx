@@ -220,9 +220,15 @@ export const SharedItineraryPage: FC<SharedItineraryPageProps> = ({
 
         <footer className="mx-auto flex max-w-[1600px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-6 text-xs text-muted-foreground sm:px-6 lg:px-8">
           <span>
-            Unofficial planning tool. Final eligibility is determined by oneworld
-            and the ticketing carrier.
+            Unofficial planning tool. Final eligibility is determined by
+            oneworld and the ticketing carrier.
           </span>
+          <a
+            className="underline-offset-4 hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            href="/guide/"
+          >
+            Planning guide
+          </a>
           <a
             className="inline-flex items-center gap-1.5 underline-offset-4 hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             href="https://github.com/Lmmmmmm-bb/oneworld-global-explorer"

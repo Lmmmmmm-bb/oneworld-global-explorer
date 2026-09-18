@@ -151,12 +151,18 @@ const PlannerPageContent: FC = () => {
             Route workspace
           </p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight sm:text-3xl">
-            Plan the route. Check the rules.
+            Plan your oneworld Global Explorer itinerary.
           </h1>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Build a Global Explorer itinerary with clear mileage and route
-            validation as you go.
+            Build a round-the-world route, estimate mileage, and check common
+            itinerary rules as you go.
           </p>
+          <a
+            className="mt-2 inline-block text-xs font-medium text-primary underline-offset-4 hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            href="/guide/"
+          >
+            New to Global Explorer? Read the planning guide →
+          </a>
         </div>
 
         <SummaryStrip itinerary={itinerary} validation={validation} />
@@ -240,6 +246,12 @@ const PlannerPageContent: FC = () => {
           Unofficial planning tool. Final eligibility is determined by oneworld
           and the ticketing carrier.
         </span>
+        <a
+          className="underline-offset-4 hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+          href="/guide/"
+        >
+          Planning guide
+        </a>
         <a
           className="inline-flex items-center gap-1.5 underline-offset-4 hover:text-foreground hover:underline focus-visible:rounded-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
           href="https://github.com/Lmmmmmm-bb/oneworld-global-explorer"

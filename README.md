@@ -1,7 +1,18 @@
 # oneworld Global Explorer Planner
 
-Plan a round-the-world Global Explorer itinerary, see the route on an
-interactive globe, and catch common rule issues as you build.
+Build a round-the-world itinerary for the distance-based **oneworld Global
+Explorer** fare. Estimate mileage, see your route on an interactive globe, and
+check common itinerary rules as you plan.
+
+**[Open the planner](https://oneworld-explorer.lmmmmmm.dev/)** ·
+[Read the guide](https://oneworld-explorer.lmmmmmm.dev/guide/) ·
+[Explore a sample itinerary](https://oneworld-explorer.lmmmmmm.dev/#/share/v1/eJy1kUFLw0AQhf_LnOOh6ik3GymlFItWFBEPYzJJhm52l901WkL-u5MNWCkt5NLjzLw37xumgxbSWQI71gWkwIE1OXR7SKDAgJB24POaGnwh59noKM7xk3Wm0HuxUG60aQZDw4qwojnGVfgVjDRJF68c6o0lvcJvSEtUnhIoFVd1EP97BzzI6Qcbq-hqJp7SmUZa28VGCtmSwnr5NASg25EQVhk6x-RkML-TPvvMFORrdPQXYKzccUI7VC2q570VLfhgrGll2idHHNcHjjE8ciwf7k9zrNbTOaJ2KsfNgWMMjxzbtzMcj4vpHFE7leP2319i-MgRX3RJjo--_wVCe97h)
+
+![A sample SFO–LHR–HND–SYD–SFO itinerary with mileage and route validation](public/planner-example.png)
+
+The sample passes the planner's checked-in route and rule checks at an estimated
+23,596 miles in the 26,000-mile band. It does not confirm live schedules,
+availability, pricing, or ticketing.
 
 This is an unofficial, independent planning tool. It is not affiliated with or
 endorsed by oneworld or its member airlines.

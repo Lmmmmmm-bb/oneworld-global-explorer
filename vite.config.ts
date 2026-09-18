@@ -8,6 +8,10 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   build: {
     rollupOptions: {
+      input: {
+        planner: path.resolve(import.meta.dirname, "index.html"),
+        guide: path.resolve(import.meta.dirname, "guide/index.html"),
+      },
       output: {
         manualChunks(id) {
           if (

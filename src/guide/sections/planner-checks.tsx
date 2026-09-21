@@ -1,55 +1,103 @@
-import type { FC } from "react"
-
-import { SectionHeading } from "../components/section-heading.tsx"
-import { PAGE_WIDTH } from "../styles.ts"
+import { ArrowUpRight, Check, CircleHelp } from "lucide-react"
+import { APP_CONFIG } from "../../config.ts"
+import { Reveal } from "../motion/reveal.tsx"
+import { PAGE_WIDTH } from "../layout/classes.ts"
 
 const CHECKS = [
-  {
-    symbol: "↗",
-    title: "Known routes and carriers",
-    body: "Suggestions come from a checked-in route snapshot, not a live schedule.",
-  },
-  {
-    symbol: "◉",
-    title: "Mileage and segments",
-    body: "Estimated flight and open-jaw distance counts toward the selected mileage band and segment limit.",
-  },
-  {
-    symbol: "◇",
-    title: "Common routing rules",
-    body: "Review crossings, direction, stopovers, regional limits, itinerary closure, and open-jaw restrictions.",
-  },
-] as const
+  [
+    "Connections & carriers",
+    "Routes and participating carriers from the included network snapshot.",
+  ],
+  [
+    "Miles & segments",
+    "Estimated flight and open-jaw distance, mileage bands, and segment counts.",
+  ],
+  [
+    "The shape of your journey",
+    "Direction, crossings, stopovers, regional limits, and itinerary closure.",
+  ],
+]
+const CONFIRMATIONS = [
+  [
+    "Flights & availability",
+    "Current schedules, operating flights, and seats in the right booking class.",
+  ],
+  [
+    "The fare & the ticket",
+    "Live pricing, booking conditions, and whether a carrier will issue your itinerary.",
+  ],
+  [
+    "The final word",
+    "Confirm the complete journey with the issuing airline or travel agent.",
+  ],
+]
 
-export const PlannerChecks: FC = () => (
-  <section className="bg-[#eaf2ec] py-[68px] sm:py-[88px]">
-    <div
-      className={`${PAGE_WIDTH} grid gap-11 min-[1041px]:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] min-[1041px]:gap-20`}
-    >
-      <SectionHeading
-        eyebrowText="WHAT THE PLANNER CHECKS"
-        title="See issues while the route is still easy to change."
-      />
-      <div className="border-t border-[#cadbce]">
-        {CHECKS.map(({ body, symbol, title }) => (
-          <div
-            className="flex items-start gap-5 border-b border-[#cadbce] py-6"
-            key={title}
-          >
-            <span className="text-guide-green grid size-8 shrink-0 place-items-center border border-[#bad1c0]">
-              <span aria-hidden="true" className="text-[17px]">
-                {symbol}
-              </span>
-            </span>
-            <p className="m-0 flex flex-col gap-1">
-              <strong className="text-[15px]">{title}</strong>
-              <span className="text-guide-muted text-[13px] leading-[1.7]">
-                {body}
-              </span>
-            </p>
-          </div>
-        ))}
+export const PlannerChecks = () => (
+  <section
+    className={`${PAGE_WIDTH} guide-section-space`}
+    aria-labelledby="checks-title"
+  >
+    <Reveal className="grid gap-8 md:grid-cols-[1fr_0.65fr] md:items-end">
+      <div>
+        <p className="guide-eyebrow">CONFIDENCE, WITH CONTEXT</p>
+        <h2 id="checks-title" className="guide-section-title mt-6">
+          Know what’s checked.
+          <br />
+          <span className="text-guide-muted">Know what comes next.</span>
+        </h2>
       </div>
+      <p className="text-guide-muted max-w-md text-base leading-[1.85]">
+        A good plan makes the next conversation easier. “Route valid” means your
+        plan passes the checks implemented here. It isn’t a booking
+        confirmation.
+      </p>
+    </Reveal>
+    <div className="mt-14 grid gap-5 md:grid-cols-2">
+      <Reveal className="boundary-panel boundary-panel-checked">
+        <div className="flex items-center gap-3">
+          <span className="boundary-icon">
+            <Check className="size-4" aria-hidden="true" />
+          </span>
+          <h3 className="font-heading text-xl tracking-tight">
+            In the planner
+          </h3>
+        </div>
+        <dl>
+          {CHECKS.map(([title, body]) => (
+            <div key={title}>
+              <dt>{title}</dt>
+              <dd>{body}</dd>
+            </div>
+          ))}
+        </dl>
+      </Reveal>
+      <Reveal className="boundary-panel">
+        <div className="flex items-center gap-3">
+          <span className="boundary-icon boundary-icon-confirm">
+            <CircleHelp className="size-4" aria-hidden="true" />
+          </span>
+          <h3 className="font-heading text-xl tracking-tight">
+            With your airline
+          </h3>
+        </div>
+        <dl>
+          {CONFIRMATIONS.map(([title, body]) => (
+            <div key={title}>
+              <dt>{title}</dt>
+              <dd>{body}</dd>
+            </div>
+          ))}
+        </dl>
+      </Reveal>
     </div>
+    <a
+      className="text-guide-green mt-7 inline-flex items-center gap-2 text-xs underline underline-offset-4"
+      href={APP_CONFIG.officialTermsUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+    >
+      Read the published Global Explorer terms{" "}
+      <ArrowUpRight className="size-3.5" aria-hidden="true" />
+    </a>
   </section>
 )

@@ -1,27 +1,24 @@
-import type { FC } from "react"
-
-import { GuideFooter } from "./components/guide-footer.tsx"
-import { GuideHeader } from "./components/guide-header.tsx"
-import { ExampleRoute } from "./sections/example-route.tsx"
+import { MotionConfig } from "motion/react"
+import { GuideFooter } from "./layout/guide-footer.tsx"
+import { GuideHeader } from "./layout/guide-header.tsx"
+import { ExampleJourney } from "./sections/example-journey/example-journey.tsx"
 import { FaqSection } from "./sections/faq-section.tsx"
 import { FinalCallToAction } from "./sections/final-call-to-action.tsx"
-import { HeroSection } from "./sections/hero-section.tsx"
-import { HowItWorks } from "./sections/how-it-works.tsx"
+import { HeroSection } from "./sections/hero/hero-section.tsx"
+import { JourneyWorkbench } from "./sections/journey-workbench/journey-workbench.tsx"
 import { PlannerChecks } from "./sections/planner-checks.tsx"
-import { ScopeStrip } from "./sections/scope-strip.tsx"
 
-export const GuideApp: FC = () => (
-  <>
+export const GuideApp = () => (
+  <MotionConfig reducedMotion="user">
     <GuideHeader />
-    <main>
+    <main id="guide-main" tabIndex={-1} className="outline-none">
       <HeroSection />
-      <ScopeStrip />
-      <HowItWorks />
+      <JourneyWorkbench />
+      <ExampleJourney />
       <PlannerChecks />
-      <ExampleRoute />
       <FaqSection />
       <FinalCallToAction />
     </main>
     <GuideFooter />
-  </>
+  </MotionConfig>
 )

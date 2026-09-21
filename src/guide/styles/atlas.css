@@ -1,0 +1,70 @@
+@layer components {
+  .route-atlas {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    --atlas-accent: var(--color-guide-pine);
+    --atlas-surface: var(--color-guide-paper);
+    --atlas-text: var(--color-guide-night);
+  }
+  .route-atlas[data-tone="dark"] {
+    --atlas-accent: var(--color-guide-signal);
+    --atlas-surface: var(--color-guide-night);
+    --atlas-text: var(--color-guide-paper);
+  }
+  .atlas-graticule {
+    color: var(--color-guide-mist);
+    opacity: 0.16;
+  }
+  .atlas-land {
+    color: var(--color-guide-mist);
+    opacity: 0.6;
+  }
+  .atlas-route-track {
+    stroke: var(--color-guide-mist);
+    opacity: 0.35;
+  }
+  .atlas-route {
+    stroke: var(--atlas-accent);
+    vector-effect: non-scaling-stroke;
+  }
+  .atlas-route-drawn {
+    stroke-dasharray: 1 1;
+    stroke-dashoffset: var(--route-offset, 1);
+  }
+  .atlas-stop {
+    fill: var(--atlas-accent);
+    stroke: var(--atlas-surface);
+    stroke-width: 1.5;
+  }
+  .atlas-arrival {
+    stroke: var(--atlas-accent);
+    stroke-width: 1;
+    fill: var(--atlas-accent);
+    fill-opacity: 0.1;
+    transition: opacity 180ms;
+  }
+  .atlas-label {
+    fill: var(--atlas-text);
+    stroke: var(--atlas-surface);
+    stroke-width: 5px;
+    stroke-linejoin: round;
+    paint-order: stroke;
+  }
+  .atlas-code {
+    font: 500 19px var(--font-heading);
+    letter-spacing: -0.5px;
+  }
+  .atlas-city {
+    font: 11px var(--font-sans);
+  }
+}
+@media (max-width: 639px) {
+  .hero-chart .atlas-city {
+    display: none;
+  }
+  .hero-chart .atlas-code {
+    font-size: 42px;
+  }
+}

@@ -1,0 +1,47 @@
+@font-face {
+  font-family: "Inter Variable";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("@fontsource-variable/inter/files/inter-latin-wght-normal.woff2")
+    format("woff2");
+}
+@font-face {
+  font-family: "Space Grotesk Variable";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: swap;
+  src: url("@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2")
+    format("woff2");
+}
+@theme {
+  --font-sans: "Inter Variable", Inter, sans-serif;
+  --font-heading: "Space Grotesk Variable", "Inter Variable", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --color-guide-night: #0c191d;
+  --color-guide-paper: #f3f5ef;
+  --color-guide-signal: #adf0c4;
+  --color-guide-pine: #246e50;
+  --color-guide-mist: #8caba4;
+  --color-guide-frame: #294047;
+  --color-guide-ink: #0c191d;
+  --color-guide-muted: #294047;
+  --color-guide-green: #246e50;
+  --color-guide-line: #d1d9d1;
+}
+:root {
+  --guide-header-height: 72px;
+}
+.guide-dark {
+  --color-guide-ink: var(--color-guide-paper);
+  --color-guide-muted: var(--color-guide-mist);
+  --color-guide-green: var(--color-guide-signal);
+  --color-guide-line: var(--color-guide-frame);
+  color: var(--color-guide-ink);
+  background: var(--color-guide-night);
+}
+@media (max-width: 639px) {
+  :root {
+    --guide-header-height: 64px;
+  }
+}

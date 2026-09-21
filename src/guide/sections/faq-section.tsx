@@ -1,47 +1,44 @@
-import type { FC, ReactNode } from "react"
+import { Plus } from "lucide-react"
+import { Reveal } from "../motion/reveal.tsx"
+import { PAGE_WIDTH } from "../layout/classes.ts"
 
-import { SectionHeading } from "../components/section-heading.tsx"
-import { PAGE_WIDTH } from "../styles.ts"
-
-const TERMS_URL =
-  "https://assets.ctfassets.net/m9ph4qvas97u/2pqmhTK95sqIsn5UP02lz/a55a65324e4eff966e9d520216b6c307/Global_Explorer_27_FEB_26.pdf"
-
-const FAQ_ITEMS: ReadonlyArray<{ title: string; body: ReactNode }> = [
+const FAQ_ITEMS = [
   {
-    title: "Does “Route valid” mean I can buy this ticket?",
+    title: "Is Global Explorer the same as oneworld Explorer?",
+    body: (
+      <>
+        They’re different fare products. Global Explorer is distance-based;
+        oneworld Explorer is based on the continents visited. This planner
+        covers Global Explorer only. See{" "}
+        <a
+          href="https://www.oneworld.com/round-the-world"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline underline-offset-4"
+        >
+          oneworld’s fare overview
+        </a>{" "}
+        for the distinction.
+      </>
+    ),
+  },
+  {
+    title: "Does a valid route mean I can buy the ticket?",
     body: (
       <>
         No. It means the plan passes the route-derived checks implemented here.
         The planner does not check live schedules, seats, fares, booking
-        classes, or whether a carrier will issue the ticket.
+        classes, or whether a carrier will issue the ticket. Confirm the full
+        journey with the issuing carrier.
       </>
     ),
   },
   {
-    title: "Is this the same as oneworld Explorer?",
-    body: (
-      <>
-        No. Global Explorer uses a distance-based fare. The separate oneworld
-        Explorer fare is based on the continents visited. This tool covers
-        Global Explorer only. See{" "}
-        <a
-          className="text-guide-green-dark underline underline-offset-3"
-          href="https://www.oneworld.com/round-the-world"
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          oneworld&apos;s fare overview
-        </a>{" "}
-        for the product distinction.
-      </>
-    ),
-  },
-  {
-    title: "What if a flight is missing?",
+    title: "What if a flight I want is missing?",
     body: (
       <>
         The route snapshot can be incomplete or outdated. A missing suggestion
-        does not prove a flight does not operate; check current schedules with
+        does not prove a flight does not operate. Check current schedules with
         the airline.
       </>
     ),
@@ -51,48 +48,52 @@ const FAQ_ITEMS: ReadonlyArray<{ title: string; body: ReactNode }> = [
     body: (
       <>
         Your working plan stays in this browser. A share link contains a
-        compressed snapshot in the URL; anyone with that link can read the
-        snapshot.
+        compressed snapshot in its URL. Anyone with the link can read that
+        snapshot, so share it with people you choose.
+      </>
+    ),
+  },
+  {
+    title: "Do I need an account to start?",
+    body: (
+      <>
+        No account is needed. Open the planner and start building your route.
+        Your working itinerary is stored in this browser; save a share link if
+        you want to keep a snapshot or open it on another device.
       </>
     ),
   },
 ]
 
-export const FaqSection: FC = () => (
-  <section className="border-guide-line border-t bg-white py-[72px] sm:py-[100px]">
-    <div className={PAGE_WIDTH}>
-      <SectionHeading
-        eyebrowText="BEFORE YOU RELY ON A ROUTE"
-        title="Know what the status means."
-      />
-      <div className="mt-10 grid sm:grid-cols-2 sm:gap-x-[70px]">
+export const FaqSection = () => (
+  <section id="questions" className="faq-section">
+    <div
+      className={`${PAGE_WIDTH} grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-20`}
+    >
+      <Reveal>
+        <p className="guide-eyebrow">A FEW THINGS BEFORE YOU GO</p>
+        <h2 className="guide-section-title mt-6">
+          Good questions.
+          <br />
+          <span className="text-guide-muted">Clear answers.</span>
+        </h2>
+        <p className="text-guide-muted mt-6 max-w-xs text-base leading-[1.8]">
+          The small details that make a big journey easier to plan.
+        </p>
+      </Reveal>
+      <div className="faq-list">
         {FAQ_ITEMS.map((item) => (
-          <article
-            className="border-guide-line border-t py-6 sm:pb-7"
-            key={item.title}
-          >
-            <h3 className="text-base font-semibold tracking-[-0.025em]">
-              {item.title}
-            </h3>
-            <p className="text-guide-muted mt-2.5 mb-0 text-[13px] leading-[1.7]">
-              {item.body}
-            </p>
-          </article>
+          <details className="faq-item" key={item.title}>
+            <summary>
+              <h3>{item.title}</h3>
+              <Plus className="faq-plus size-4 shrink-0" aria-hidden="true" />
+            </summary>
+            <div className="faq-answer">
+              <p>{item.body}</p>
+            </div>
+          </details>
         ))}
       </div>
-      <p className="text-guide-muted mt-8 mb-0 max-w-[900px] text-xs leading-[1.7]">
-        Use the{" "}
-        <a
-          className="text-guide-green-dark underline underline-offset-3"
-          href={TERMS_URL}
-          rel="noopener noreferrer"
-          target="_blank"
-        >
-          published Global Explorer terms
-        </a>{" "}
-        and confirm the full journey with the issuing carrier before making
-        travel arrangements.
-      </p>
     </div>
   </section>
 )

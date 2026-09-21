@@ -1,0 +1,45 @@
+@layer components {
+  .boundary-panel {
+    padding: 32px;
+    border-top: 1px solid var(--color-guide-line);
+  }
+  .boundary-panel:first-child {
+    border-right: 1px solid var(--color-guide-line);
+  }
+  .boundary-icon {
+    display: grid;
+    width: 32px;
+    height: 32px;
+    place-items: center;
+    color: var(--color-guide-pine);
+  }
+  .boundary-icon-confirm {
+    color: var(--color-guide-frame);
+  }
+  .boundary-panel dl {
+    margin-top: 28px;
+  }
+  .boundary-panel dl > div {
+    padding-block: 22px;
+    border-top: 1px solid var(--color-guide-line);
+  }
+  .boundary-panel dt {
+    font-size: 16px;
+    font-weight: 500;
+  }
+  .boundary-panel dd {
+    margin-top: 8px;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--color-guide-muted);
+    max-width: 450px;
+  }
+}
+@media (max-width: 767px) {
+  .boundary-panel {
+    padding-inline: 0;
+  }
+  .boundary-panel:first-child {
+    border-right: 0;
+  }
+}

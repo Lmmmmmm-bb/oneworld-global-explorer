@@ -1,0 +1,54 @@
+@layer components {
+  .final-journey {
+    position: relative;
+    overflow: clip;
+    padding-block: 104px 128px;
+    text-align: center;
+  }
+  .final-journey > .guide-container {
+    position: relative;
+    z-index: 1;
+  }
+  .final-journey .guide-eyebrow {
+    justify-content: center;
+  }
+  .final-journey h2 {
+    margin-top: 24px;
+    font: 500 clamp(58px, 7vw, 98px)/1.02 var(--font-heading);
+    letter-spacing: -0.055em;
+  }
+  .final-description {
+    color: var(--color-guide-muted);
+    margin: 24px auto;
+    font-size: 17px;
+    line-height: 1.7;
+  }
+  .final-note {
+    font-size: 12px;
+    margin-top: 16px;
+    color: var(--color-guide-muted);
+  }
+  .closing-route {
+    position: absolute;
+    width: 100%;
+    min-width: 700px;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0.3;
+    stroke: var(--color-guide-signal);
+    stroke-width: 1;
+  }
+  .closing-route circle {
+    fill: var(--color-guide-signal);
+    stroke: none;
+  }
+}
+@media (max-width: 639px) {
+  .final-journey {
+    padding-block: 72px 96px;
+  }
+  .closing-route {
+    opacity: 0.16;
+  }
+}

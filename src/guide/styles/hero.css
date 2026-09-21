@@ -1,0 +1,168 @@
+@layer components {
+  .flightpath-hero {
+    border-bottom: 1px solid var(--color-guide-line);
+  }
+  .flightpath-hero > .guide-container {
+    border-inline: 1px solid var(--color-guide-frame);
+  }
+  .hero-copy {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding-top: 54px;
+    text-align: center;
+  }
+  .hero-copy .guide-eyebrow {
+    justify-content: center;
+  }
+  .hero-copy h1 {
+    margin-top: 24px;
+    font: 500 clamp(64px, 6.8vw, 98px)/1.02 var(--font-heading);
+    letter-spacing: -0.06em;
+  }
+  .hero-copy h1 span {
+    color: var(--color-guide-signal);
+  }
+  .hero-description {
+    max-width: 570px;
+    margin: 24px auto 0;
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--color-guide-muted);
+    text-wrap: balance;
+  }
+  .hero-actions {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+  }
+  .hero-note {
+    margin-top: 14px;
+    font-size: 12px;
+    color: var(--color-guide-muted);
+  }
+  .hero-chart {
+    position: relative;
+    margin-top: 32px;
+    padding-top: 28px;
+  }
+  .hero-chart-caption,
+  .hero-chart-coordinates {
+    display: flex;
+    justify-content: space-between;
+    font: 10px/1.5 var(--font-mono);
+    letter-spacing: 0.1em;
+    color: var(--color-guide-mist);
+  }
+  .hero-chart-caption {
+    position: absolute;
+    top: 4px;
+    inset-inline: 0;
+  }
+  .hero-map-layer {
+    height: 370px;
+  }
+  .hero-map-layer .route-atlas {
+    height: 100%;
+  }
+  .hero-chart-coordinates {
+    padding-block: 12px 24px;
+  }
+  .hero-route-index {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    min-height: 76px;
+    border-top: 1px solid var(--color-guide-line);
+    font: 13px/1.7 var(--font-mono);
+  }
+  .hero-route-index > p {
+    flex: 1;
+  }
+  .hero-route-index > a {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-left: 1px solid var(--color-guide-line);
+  }
+  .hero-unit {
+    color: var(--color-guide-muted);
+    font-size: 12px;
+  }
+}
+@media (max-width: 1023px) {
+  .hero-map-layer {
+    height: 300px;
+    transform: none !important;
+  }
+  .hero-route-index {
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    padding-block: 20px;
+  }
+  .hero-route-index .guide-eyebrow {
+    display: none;
+  }
+}
+@media (max-width: 639px) {
+  .hero-copy {
+    padding-top: 40px;
+  }
+  .hero-copy h1 {
+    font-size: clamp(44px, 9.5vw, 58px);
+    letter-spacing: -0.05em;
+  }
+  .hero-copy .guide-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+  .hero-description {
+    font-size: 16px;
+    margin-top: 22px;
+  }
+  .hero-actions {
+    gap: 10px;
+  }
+  .hero-actions > a {
+    gap: 10px;
+    padding-inline: 15px;
+  }
+  .hero-note {
+    max-width: 240px;
+    margin-inline: auto;
+    line-height: 1.7;
+  }
+  .hero-chart {
+    margin-top: 34px;
+    padding-top: 24px;
+  }
+  .hero-chart-caption {
+    font-size: 9px;
+  }
+  .hero-chart-caption > :last-child {
+    display: none;
+  }
+  .hero-map-layer {
+    height: 200px;
+  }
+  .hero-chart-coordinates {
+    font-size: 9px;
+    padding-bottom: 16px;
+  }
+  .hero-route-index {
+    position: relative;
+    padding-right: 42px;
+    font-size: 12px;
+  }
+  .hero-route-index > p {
+    flex-basis: 100%;
+  }
+  .hero-route-index > a {
+    position: absolute;
+    right: 0;
+  }
+}

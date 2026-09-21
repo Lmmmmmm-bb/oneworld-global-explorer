@@ -1,0 +1,220 @@
+@layer components {
+  .example-journey {
+    padding-block: 96px;
+    border-top: 1px solid var(--color-guide-line);
+  }
+  .example-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 48px;
+  }
+  .example-heading > p {
+    max-width: 330px;
+    color: var(--color-guide-muted);
+    font-size: 16px;
+    line-height: 1.8;
+  }
+  .journey-ledger {
+    margin-top: 64px;
+  }
+  .ledger-stops {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) minmax(100px, 0.65fr);
+  }
+  .ledger-stops > li {
+    min-width: 0;
+    position: relative;
+  }
+  .ledger-airport {
+    position: relative;
+    border-top: 1px solid var(--color-guide-line);
+    padding: 30px 14px 16px 0;
+  }
+  .ledger-dot {
+    position: absolute;
+    top: -4px;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--color-guide-mist);
+    box-shadow: 0 0 0 6px var(--color-guide-paper);
+  }
+  [data-active="true"] > .ledger-airport .ledger-dot {
+    background: var(--color-guide-pine);
+  }
+  .ledger-stop-label {
+    font: 11px var(--font-mono);
+    color: var(--color-guide-muted);
+    text-transform: uppercase;
+  }
+  .ledger-airport strong {
+    display: block;
+    font: 500 52px/1.1 var(--font-heading);
+    letter-spacing: -0.05em;
+    margin-block: 10px 6px;
+  }
+  .ledger-airport > :last-child {
+    display: block;
+    font-size: 13px;
+    color: var(--color-guide-muted);
+  }
+  .ledger-leg {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 8px;
+    width: calc(100% - 20px);
+    padding: 12px 0;
+    margin-top: 8px;
+    border-bottom: 1px solid var(--color-guide-line);
+    text-align: left;
+    font-size: 12px;
+    color: var(--color-guide-muted);
+    transition:
+      color 160ms,
+      border-color 160ms;
+  }
+  .ledger-leg > :last-child {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    align-items: center;
+    font-family: var(--font-mono);
+  }
+  .ledger-leg[data-preview="true"] {
+    color: var(--color-guide-pine);
+    border-bottom-color: var(--color-guide-pine);
+  }
+  .ledger-details {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    min-height: 76px;
+    border-block: 1px solid var(--color-guide-line);
+    margin-top: 36px;
+    padding-block: 16px;
+    font-size: 13px;
+  }
+  .ledger-detail-label {
+    font: 11px var(--font-mono);
+    color: var(--color-guide-pine);
+  }
+  .ledger-details p {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    font-size: 15px;
+  }
+  .ledger-details > :last-child {
+    color: var(--color-guide-muted);
+  }
+  .example-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 32px;
+    padding-top: 36px;
+  }
+  .example-summary dl {
+    display: flex;
+    gap: 48px;
+  }
+  .example-summary dt {
+    font: 11px var(--font-mono);
+    text-transform: uppercase;
+    color: var(--color-guide-muted);
+  }
+  .example-summary dd {
+    margin-top: 12px;
+    font: 500 40px/1.1 var(--font-heading);
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+  }
+  .example-summary dd span {
+    font: 14px var(--font-mono);
+    color: var(--color-guide-muted);
+  }
+  .example-disclaimer {
+    color: var(--color-guide-muted);
+    font-size: 12px;
+    line-height: 1.7;
+    margin-top: 24px;
+  }
+}
+@media (max-width: 1023px) {
+  .example-heading {
+    display: block;
+  }
+  .example-heading > p {
+    margin-top: 24px;
+    max-width: 480px;
+  }
+  .ledger-details {
+    flex-wrap: wrap;
+    gap: 12px 24px;
+  }
+  .ledger-details > :last-child {
+    flex-basis: 100%;
+  }
+  .example-summary {
+    align-items: start;
+    flex-direction: column;
+  }
+}
+@media (max-width: 767px) {
+  .ledger-stops {
+    display: block;
+  }
+  .ledger-stops > li {
+    padding-left: 28px;
+    border-left: 1px solid var(--color-guide-line);
+    margin-left: 4px;
+  }
+  .ledger-stops > li:last-child {
+    border-left-color: transparent;
+  }
+  .ledger-airport {
+    padding: 0;
+    border: 0;
+  }
+  .ledger-dot {
+    left: -32px;
+    top: 6px;
+  }
+  .ledger-airport strong {
+    font-size: 36px;
+    margin-block: 4px;
+  }
+  .ledger-leg {
+    width: 100%;
+    margin: 8px 0 0;
+    padding-block: 12px 28px;
+    border-bottom: 0;
+  }
+  .ledger-leg > :last-child {
+    justify-content: start;
+    gap: 12px;
+  }
+  .ledger-details p {
+    font-size: 14px;
+  }
+}
+@media (max-width: 639px) {
+  .example-journey {
+    padding-block: 68px;
+  }
+  .journey-ledger {
+    margin-top: 40px;
+  }
+  .example-summary dl {
+    gap: 26px;
+  }
+  .example-summary dd {
+    font-size: 32px;
+  }
+  .example-summary dt {
+    font-size: 10px;
+  }
+}

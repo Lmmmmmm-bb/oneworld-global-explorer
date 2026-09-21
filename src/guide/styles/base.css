@@ -1,0 +1,55 @@
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--guide-header-height) + 24px);
+  }
+  body {
+    margin: 0;
+    min-width: 320px;
+    background: var(--color-guide-paper);
+    color: var(--color-guide-ink);
+    font-family: var(--font-sans);
+    font-synthesis: none;
+    -webkit-font-smoothing: antialiased;
+  }
+  a,
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+  button,
+  summary {
+    cursor: pointer;
+  }
+  a {
+    text-decoration: none;
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-guide-green);
+    outline-offset: 5px;
+  }
+  ::selection {
+    background: var(--color-guide-signal);
+    color: var(--color-guide-night);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .atlas-segment {
+    opacity: 1 !important;
+    --route-offset: 0 !important;
+  }
+  .atlas-arrival {
+    opacity: 1 !important;
+  }
+  .hero-map-layer {
+    transform: none !important;
+  }
+}

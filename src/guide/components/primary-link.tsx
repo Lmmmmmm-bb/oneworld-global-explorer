@@ -1,13 +1,12 @@
-import type { FC, PropsWithChildren } from "react"
+import type { PropsWithChildren } from "react"
 
-import { FOCUS_LINK } from "../styles.ts"
-
-export const PrimaryLink: FC<PropsWithChildren<{ href: string }>> = ({
+export const PrimaryLink = ({
   children,
   href,
-}) => (
+  light = false,
+}: PropsWithChildren<{ href: string; light?: boolean }>) => (
   <a
-    className={`${FOCUS_LINK} border-guide-green bg-guide-green hover:border-guide-green-dark hover:bg-guide-green-dark inline-flex min-h-12 items-center justify-center gap-5 border px-[18px] py-3 text-[13px] font-bold text-white no-underline transition-colors`}
+    className={`guide-primary-link ${light ? "guide-primary-link-light" : ""}`}
     href={href}
   >
     {children}

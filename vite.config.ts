@@ -1,11 +1,31 @@
 import path from "path"
 import tailwindcss from "@tailwindcss/vite"
 import react from "@vitejs/plugin-react"
-import { defineConfig } from "vite"
+import { createElement } from "react"
+import { renderToString } from "react-dom/server"
+import { defineConfig, type Plugin } from "vite"
+
+import { GuideApp } from "./src/guide/guide-app.tsx"
+
+const prerenderGuide = (): Plugin => ({
+  name: "prerender-guide",
+  apply: "build",
+  transformIndexHtml: {
+    order: "pre",
+    handler(html) {
+      if (!html.includes("<!--guide-app-->")) return html
+
+      return html.replace(
+        "<!--guide-app-->",
+        renderToString(createElement(GuideApp))
+      )
+    },
+  },
+})
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), prerenderGuide()],
   build: {
     rollupOptions: {
       input: {

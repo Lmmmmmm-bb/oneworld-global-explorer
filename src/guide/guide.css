@@ -1,0 +1,64 @@
+@import "tailwindcss";
+@import "@fontsource-variable/inter";
+
+@theme {
+  --font-sans: "Inter Variable", Inter, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --color-guide-ink: #192c23;
+  --color-guide-muted: #596a61;
+  --color-guide-green: #277453;
+  --color-guide-green-dark: #17583d;
+  --color-guide-mint: #e9f3ed;
+  --color-guide-line: #dce6df;
+  --color-guide-paper: #f7f8f6;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-width: 320px;
+    margin: 0;
+    background: var(--color-guide-paper);
+    color: var(--color-guide-ink);
+    font-family: var(--font-sans);
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a,
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  a:focus-visible {
+    outline: 3px solid #62ab80;
+    outline-offset: 4px;
+  }
+}
+
+@layer utilities {
+  .guide-grid {
+    background-image:
+      linear-gradient(#eef3ef 1px, transparent 1px),
+      linear-gradient(90deg, #eef3ef 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

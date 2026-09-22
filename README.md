@@ -179,6 +179,12 @@ configured upstream revision. The snapshot is emitted as a hashed static asset
 and decoded in the browser; sharing dialogs, share decoding, and the interactive globe
 remain in separate on-demand chunks.
 
+Runtime itinerary helpers are separate from Zod schemas; import schemas directly
+from `@/features/itinerary/schema` to preserve that loading boundary. Workspace
+icons share a chunk, while the icon runtime and loading-screen error icon stay
+separate. Planner fonts include Latin and Latin Extended subsets, including
+accented airport names, with Unicode ranges controlling which files are fetched.
+
 ## Important limitations
 
 This planner does not determine:

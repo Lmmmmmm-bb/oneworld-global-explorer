@@ -1,6 +1,7 @@
 import { strFromU8, strToU8, unzlibSync, zlibSync } from "fflate"
 
-import { itinerarySchema, type Itinerary } from "@/features/itinerary"
+import type { Itinerary } from "@/features/itinerary"
+import { itinerarySchema } from "@/features/itinerary/schema"
 
 import {
   SHARE_PROTOCOL_VERSION,

@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { itinerarySchema } from "@/features/itinerary"
+import { itinerarySchema } from "@/features/itinerary/schema"
 
 export const SHARE_PROTOCOL_VERSION = 1
 

@@ -1,10 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest"
 
-import {
-  createEmptyItinerary,
-  createFlightSegment,
-  itinerarySchema,
-} from "@/features/itinerary"
+import { createEmptyItinerary, createFlightSegment } from "@/features/itinerary"
+import { itinerarySchema } from "@/features/itinerary/schema"
 
 import { useItineraryStore } from "./itinerary"
 

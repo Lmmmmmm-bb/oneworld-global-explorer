@@ -2,17 +2,19 @@ import { create } from "zustand"
 import { createJSONStorage, persist } from "zustand/middleware"
 
 import { APP_CONFIG } from "@/config"
+import { createEmptyItinerary } from "@/features/itinerary/factories"
+import { isItinerary } from "@/features/itinerary/guard"
 import {
   areItinerariesEqual,
   cloneItinerary,
-  createEmptyItinerary,
-  isItinerary,
-  type CabinClass,
-  type FlightSegment,
-  type Itinerary,
   type ItineraryChange,
-  type MileageBandPreference,
-} from "@/features/itinerary"
+} from "@/features/itinerary/history"
+import type {
+  CabinClass,
+  FlightSegment,
+  Itinerary,
+  MileageBandPreference,
+} from "@/features/itinerary/types"
 import { getCompatibleBands } from "@/features/rules"
 import {
   commitHistory,

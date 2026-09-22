@@ -27,20 +27,28 @@ const prerenderGuide = (): Plugin => ({
 export default defineConfig({
   plugins: [react(), tailwindcss(), prerenderGuide()],
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       input: {
         planner: path.resolve(import.meta.dirname, "index.html"),
         guide: path.resolve(import.meta.dirname, "guide/index.html"),
       },
       output: {
-        manualChunks(id) {
-          if (
-            id.includes("/node_modules/react/") ||
-            id.includes("/node_modules/react-dom/") ||
-            id.includes("/node_modules/scheduler/")
-          ) {
-            return "react-core"
-          }
+        codeSplitting: {
+          groups: [
+            {
+              name: "react-core",
+              test: /node_modules[\\/](react|react-dom|scheduler)[\\/]/,
+              priority: 20,
+            },
+            {
+              name: "icons",
+              // Leave the runtime and shell's error icon outside the group so
+              // the loading/error screen does not preload workspace icons.
+              test: /node_modules[\\/]lucide-react[\\/]dist[\\/]esm[\\/]icons[\\/](?!link-2-off\.mjs$)/,
+              includeDependenciesRecursively: false,
+              priority: 10,
+            },
+          ],
         },
       },
     },
